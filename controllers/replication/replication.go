@@ -18,7 +18,7 @@ package replication
 
 import (
 	"github.com/csi-addons/volume-replication-operator/pkg/client"
-
+	replicationlib "github.com/csi-addons/spec/lib/go/replication"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -37,7 +37,7 @@ type Response struct {
 
 // CommonRequestParameters holds the common parameters across replication operations.
 type CommonRequestParameters struct {
-	VolumeID      string
+	ReplicationSource      *replicationlib.ReplicationSource
 	ReplicationID string
 	Parameters    map[string]string
 	Secrets       map[string]string
@@ -46,7 +46,7 @@ type CommonRequestParameters struct {
 
 func (r *Replication) Enable() *Response {
 	resp, err := r.Params.Replication.EnableVolumeReplication(
-		r.Params.VolumeID,
+		r.Params.ReplicationSource,
 		r.Params.ReplicationID,
 		r.Params.Secrets,
 		r.Params.Parameters,
@@ -57,7 +57,7 @@ func (r *Replication) Enable() *Response {
 
 func (r *Replication) Disable() *Response {
 	resp, err := r.Params.Replication.DisableVolumeReplication(
-		r.Params.VolumeID,
+		r.Params.ReplicationSource,
 		r.Params.ReplicationID,
 		r.Params.Secrets,
 		r.Params.Parameters,
@@ -68,7 +68,7 @@ func (r *Replication) Disable() *Response {
 
 func (r *Replication) Promote() *Response {
 	resp, err := r.Params.Replication.PromoteVolume(
-		r.Params.VolumeID,
+		r.Params.ReplicationSource,
 		r.Params.ReplicationID,
 		r.Force,
 		r.Params.Secrets,
@@ -80,7 +80,7 @@ func (r *Replication) Promote() *Response {
 
 func (r *Replication) Demote() *Response {
 	resp, err := r.Params.Replication.DemoteVolume(
-		r.Params.VolumeID,
+		r.Params.ReplicationSource,
 		r.Params.ReplicationID,
 		r.Params.Secrets,
 		r.Params.Parameters,
@@ -91,7 +91,7 @@ func (r *Replication) Demote() *Response {
 
 func (r *Replication) Resync() *Response {
 	resp, err := r.Params.Replication.ResyncVolume(
-		r.Params.VolumeID,
+		r.Params.ReplicationSource,
 		r.Params.ReplicationID,
 		r.Force,
 		r.Params.Secrets,
