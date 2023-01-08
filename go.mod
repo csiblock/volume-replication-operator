@@ -92,4 +92,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/csi-addons/spec v0.1.1 => github.com/ELENAGER/spec v0.0.0-20230102145331-c1ccde70d8ea
+replace github.com/csi-addons/spec v0.1.1 => github.com/ELENAGER/spec v0.1.3
