@@ -32,17 +32,17 @@ type replicationClient struct {
 // VolumeReplication holds the methods required for volume replication.
 type VolumeReplication interface {
 	// EnableVolumeReplication RPC call to enable the volume replication.
-	EnableVolumeReplication(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error)
+	EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error)
 	// DisableVolumeReplication RPC call to disable the volume replication.
-	DisableVolumeReplication(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error)
+	DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error)
 	// PromoteVolume RPC call to promote the volume.
-	PromoteVolume(volumeID, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
+	PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
 		PromoteVolumeResponse, error)
 	// DemoteVolume RPC call to demote the volume.
-	DemoteVolume(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.
+	DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.
 		DemoteVolumeResponse, error)
 	// ResyncVolume RPC call to resync the volume.
-	ResyncVolume(volumeID, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
+	ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
 		ResyncVolumeResponse, error)
 }
 
@@ -53,10 +53,10 @@ func NewReplicationClient(cc *grpc.ClientConn, timeout time.Duration) VolumeRepl
 }
 
 // EnableVolumeReplication RPC call to enable the volume replication.
-func (rc *replicationClient) EnableVolumeReplication(volumeID, replicationID string,
+func (rc *replicationClient) EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
 	req := &replicationlib.EnableVolumeReplicationRequest{
-		VolumeId:      volumeID,
+		ReplicationSource:      replicationSource,
 		ReplicationId: replicationID,
 		Parameters:    parameters,
 		Secrets:       secrets,
@@ -70,10 +70,10 @@ func (rc *replicationClient) EnableVolumeReplication(volumeID, replicationID str
 }
 
 // DisableVolumeReplication RPC call to disable the volume replication.
-func (rc *replicationClient) DisableVolumeReplication(volumeID, replicationID string,
+func (rc *replicationClient) DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
 	req := &replicationlib.DisableVolumeReplicationRequest{
-		VolumeId:      volumeID,
+		ReplicationSource:      replicationSource,
 		ReplicationId: replicationID,
 		Parameters:    parameters,
 		Secrets:       secrets,
@@ -87,10 +87,10 @@ func (rc *replicationClient) DisableVolumeReplication(volumeID, replicationID st
 }
 
 // PromoteVolume RPC call to promote the volume.
-func (rc *replicationClient) PromoteVolume(volumeID, replicationID string,
+func (rc *replicationClient) PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	force bool, secrets, parameters map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 	req := &replicationlib.PromoteVolumeRequest{
-		VolumeId:      volumeID,
+		ReplicationSource:      replicationSource,
 		ReplicationId: replicationID,
 		Force:         force,
 		Parameters:    parameters,
@@ -105,10 +105,10 @@ func (rc *replicationClient) PromoteVolume(volumeID, replicationID string,
 }
 
 // DemoteVolume RPC call to demote the volume.
-func (rc *replicationClient) DemoteVolume(volumeID, replicationID string,
+func (rc *replicationClient) DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
 	req := &replicationlib.DemoteVolumeRequest{
-		VolumeId:      volumeID,
+		ReplicationSource:      replicationSource,
 		ReplicationId: replicationID,
 		Parameters:    parameters,
 		Secrets:       secrets,
@@ -121,10 +121,10 @@ func (rc *replicationClient) DemoteVolume(volumeID, replicationID string,
 }
 
 // ResyncVolume RPC call to resync the volume.
-func (rc *replicationClient) ResyncVolume(volumeID, replicationID string, force bool,
+func (rc *replicationClient) ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool,
 	secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
 	req := &replicationlib.ResyncVolumeRequest{
-		VolumeId:      volumeID,
+		ReplicationSource:      replicationSource,
 		ReplicationId: replicationID,
 		Parameters:    parameters,
 		Force:         force,
