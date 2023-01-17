@@ -2,7 +2,8 @@ name: make dockerx-build-and-push-multi-arch
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   push:
