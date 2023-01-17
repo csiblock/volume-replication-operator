@@ -34,7 +34,7 @@ IMG_TAG ?= v0.9.0
 IMG=${IMG_NAME}:${IMG_TAG}
 image_arch_list=linux/amd64,linux/ppc64le,linux/s390x
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+CRD_OPTIONS ?= "crd:crdVersions=v1"
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -113,7 +113,7 @@ dockerx-build-and-push-multi-arch: test
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen:
 #	test -s controller-gen || go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.0)
+	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.10.0)
 
 # Download kustomize locally if necessary
 KUSTOMIZE = $(shell pwd)/bin/kustomize
