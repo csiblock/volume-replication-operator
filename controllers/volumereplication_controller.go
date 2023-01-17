@@ -200,6 +200,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		logger.Error(err, "failed to update volumeReplication source", "VRName", instance.Name)
 		return ctrl.Result{}, nil
 	}
+	logger.Info("Replication source", "replicationSource", replicationSource)
 
 	if replicationHandle != "" {
 		logger.Info("Replication handle", "ReplicationHandleName", replicationHandle)

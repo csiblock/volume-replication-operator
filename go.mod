@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/IBM/csi-volume-group-operator v0.0.0-20230102134955-09c72341a557
-	github.com/csi-addons/spec v0.1.1
+	github.com/csi-addons/spec v0.2.0
 	github.com/go-logr/logr v1.2.3
 	github.com/kubernetes-csi/csi-lib-utils v0.11.0
 	github.com/onsi/ginkgo v1.16.5
@@ -91,5 +91,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/csi-addons/spec v0.1.1 => github.com/ELENAGER/spec v0.1.3
