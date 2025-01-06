@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/IBM/csi-volume-group-operator v0.0.0-20230102134955-09c72341a557
 	github.com/csi-addons/spec v0.2.0
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.4.2
 	github.com/kubernetes-csi/csi-lib-utils v0.11.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.19.0
