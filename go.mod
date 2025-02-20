@@ -1,6 +1,6 @@
 module github.com/csi-addons/volume-replication-operator
 
-go 1.23.0
+go 1.23
 
 require (
 	github.com/IBM/csi-volume-group-operator v0.9.1
