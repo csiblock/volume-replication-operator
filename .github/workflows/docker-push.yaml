@@ -47,7 +47,7 @@ jobs:
         GOPATH: /home/runner/go
       run: |
         export PATH=$PATH:$GOPATH/bin
-        export VERSION="4.5.0"
+        export VERSION="2.3.2"
         wget https://github.com/kubernetes-sigs/kubebuilder/releases/download/v"$VERSION"/kubebuilder_"$VERSION"_linux_amd64.tar.gz
         tar -zxvf kubebuilder_"$VERSION"_linux_amd64.tar.gz
         export KUBEBUILDER_ASSETS="$(pwd)/kubebuilder_"$VERSION"_linux_amd64/bin"
