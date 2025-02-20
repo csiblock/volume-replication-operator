@@ -33,14 +33,16 @@ type Client struct {
 }
 
 // Connect to the GRPC client.
-func connect(address string) (*grpc.ClientConn, error) {
-	return connection.Connect(address, metrics.NewCSIMetricsManager(""), connection.OnConnectionLoss(connection.ExitOnConnectionLoss()))
+func connect(address string, timeout time.Duration) (*grpc.ClientConn, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return connection.Connect(ctx, address, metrics.NewCSIMetricsManager(""), connection.OnConnectionLoss(connection.ExitOnConnectionLoss()))
 }
 
 // New creates and returns the GRPC client.
 func New(address string, timeout time.Duration) (*Client, error) {
 	c := &Client{}
-	cc, err := connect(address)
+	cc, err := connect(address, timeout)
 	if err != nil {
 		return c, err
 	}
@@ -52,7 +54,9 @@ func New(address string, timeout time.Duration) (*Client, error) {
 
 // Probe the GRPC client once.
 func (c *Client) Probe() error {
-	return rpc.ProbeForever(c.Client, c.Timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
+	defer cancel()
+	return rpc.ProbeForever(ctx, c.Client, c.Timeout)
 }
 
 // GetDriverName gets the driver name from the driver.

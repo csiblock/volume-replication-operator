@@ -35,6 +35,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	replicationv1alpha1 "github.com/csi-addons/volume-replication-operator/api/v1alpha1"
 	"github.com/csi-addons/volume-replication-operator/controllers"
@@ -124,8 +125,7 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                     scheme,
-		MetricsBindAddress:         metricsAddr,
-		Port:                       9443,
+		Metrics:                    metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress:     probeAddr,
 		LeaderElectionResourceLock: "leases",
 		LeaderElection:             enableLeaderElection,

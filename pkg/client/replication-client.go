@@ -56,10 +56,10 @@ func NewReplicationClient(cc *grpc.ClientConn, timeout time.Duration) VolumeRepl
 func (rc *replicationClient) EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
 	req := &replicationlib.EnableVolumeReplicationRequest{
-		ReplicationSource:      replicationSource,
-		ReplicationId: replicationID,
-		Parameters:    parameters,
-		Secrets:       secrets,
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Parameters:        parameters,
+		Secrets:           secrets,
 	}
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
@@ -73,10 +73,10 @@ func (rc *replicationClient) EnableVolumeReplication(replicationSource *replicat
 func (rc *replicationClient) DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
 	req := &replicationlib.DisableVolumeReplicationRequest{
-		ReplicationSource:      replicationSource,
-		ReplicationId: replicationID,
-		Parameters:    parameters,
-		Secrets:       secrets,
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Parameters:        parameters,
+		Secrets:           secrets,
 	}
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
@@ -90,11 +90,11 @@ func (rc *replicationClient) DisableVolumeReplication(replicationSource *replica
 func (rc *replicationClient) PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	force bool, secrets, parameters map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 	req := &replicationlib.PromoteVolumeRequest{
-		ReplicationSource:      replicationSource,
-		ReplicationId: replicationID,
-		Force:         force,
-		Parameters:    parameters,
-		Secrets:       secrets,
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Force:             force,
+		Parameters:        parameters,
+		Secrets:           secrets,
 	}
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
@@ -108,10 +108,10 @@ func (rc *replicationClient) PromoteVolume(replicationSource *replicationlib.Rep
 func (rc *replicationClient) DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 	secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
 	req := &replicationlib.DemoteVolumeRequest{
-		ReplicationSource:      replicationSource,
-		ReplicationId: replicationID,
-		Parameters:    parameters,
-		Secrets:       secrets,
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Parameters:        parameters,
+		Secrets:           secrets,
 	}
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
@@ -124,11 +124,11 @@ func (rc *replicationClient) DemoteVolume(replicationSource *replicationlib.Repl
 func (rc *replicationClient) ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool,
 	secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
 	req := &replicationlib.ResyncVolumeRequest{
-		ReplicationSource:      replicationSource,
-		ReplicationId: replicationID,
-		Parameters:    parameters,
-		Force:         force,
-		Secrets:       secrets,
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Parameters:        parameters,
+		Force:             force,
+		Secrets:           secrets,
 	}
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)

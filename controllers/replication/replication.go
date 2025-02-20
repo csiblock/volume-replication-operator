@@ -17,8 +17,8 @@ limitations under the License.
 package replication
 
 import (
-	"github.com/csi-addons/volume-replication-operator/pkg/client"
 	replicationlib "github.com/csi-addons/spec/lib/go/replication"
+	"github.com/csi-addons/volume-replication-operator/pkg/client"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -37,11 +37,11 @@ type Response struct {
 
 // CommonRequestParameters holds the common parameters across replication operations.
 type CommonRequestParameters struct {
-	ReplicationSource      *replicationlib.ReplicationSource
-	ReplicationID string
-	Parameters    map[string]string
-	Secrets       map[string]string
-	Replication   client.VolumeReplication
+	ReplicationSource *replicationlib.ReplicationSource
+	ReplicationID     string
+	Parameters        map[string]string
+	Secrets           map[string]string
+	Replication       client.VolumeReplication
 }
 
 func (r *Replication) Enable() *Response {
