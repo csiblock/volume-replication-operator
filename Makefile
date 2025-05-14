@@ -30,7 +30,7 @@ BUNDLE_IMG ?= controller-bundle:$(VERSION)
 
 # Image URL to use all building/pushing image targets
 IMG_NAME ?= quay.io/ibmcsiblock/csi-block-volumereplication-operator
-IMG_TAG ?= v0.9.2
+IMG_TAG ?= v0.9.3
 IMG=${IMG_NAME}:${IMG_TAG}
 image_arch_list=linux/amd64,linux/ppc64le,linux/s390x
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
