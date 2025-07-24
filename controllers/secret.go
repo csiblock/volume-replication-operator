@@ -26,10 +26,10 @@ import (
 )
 
 // getSecret retrieves the secrets based on name and namespace input.
-func (r *VolumeReplicationReconciler) getSecret(logger logr.Logger, name, namespace string) (map[string]string, error) {
+func (r *VolumeReplicationReconciler) getSecret(ctx context.Context, logger logr.Logger, name, namespace string) (map[string]string, error) {
 	namespacedName := types.NamespacedName{Name: name, Namespace: namespace}
 	secret := &corev1.Secret{}
-	err := r.Client.Get(context.TODO(), namespacedName, secret)
+	err := r.Client.Get(ctx, namespacedName, secret)
 	if err != nil {
 		if apierrors.IsNotFound(err) {
 			logger.Error(err, "secret not found", "Secret Name", name, "Secret Namespace", namespace)

@@ -29,6 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+
+	"context"
 )
 
 const (
@@ -166,7 +168,7 @@ func TestGetVolumeHandle(t *testing.T) {
 		}
 
 		reconciler := createFakeVolumeReplicationReconciler(t, testPV, testPVC, volumeReplication)
-		resultPVC, resultPV, err := reconciler.getPVCDataSource(reconciler.Log, namespacedName)
+		resultPVC, resultPV, err := reconciler.getPVCDataSource(context.TODO(), reconciler.Log, namespacedName)
 		if tc.errorExpected {
 			assert.Error(t, err)
 		} else {
