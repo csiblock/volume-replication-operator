@@ -59,6 +59,7 @@ var (
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
 type VolumeReplicationReconciler struct {
 	client.Client
+
 	Log          logr.Logger
 	Scheme       *runtime.Scheme
 	DriverConfig *config.DriverConfig

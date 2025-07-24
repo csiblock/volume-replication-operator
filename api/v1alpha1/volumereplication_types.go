@@ -111,6 +111,7 @@ type VolumeReplication struct {
 type VolumeReplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
+
 	Items           []VolumeReplication `json:"items"`
 }
 
