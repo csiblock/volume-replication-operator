@@ -388,24 +388,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	return ctrl.Result{}, nil
 }
 
-func (r *VolumeReplicationReconciler) updateReplicationStatus(
-	ctx context.Context,
-	instance *replicationv1alpha1.VolumeReplication,
-	logger logr.Logger,
-	state replicationv1alpha1.State,
-	message string) error {
-	instance.Status.State = state
-	instance.Status.Message = message
-	instance.Status.ObservedGeneration = instance.Generation
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
-		logger.Error(err, "failed to update status")
-
-		return err
-	}
-
-	return nil
-}
-
 // SetupWithManager sets up the controller with the Manager.
 func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *config.DriverConfig) error {
 	err := r.waitForCrds()
@@ -443,6 +425,24 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&replicationv1alpha1.VolumeReplication{}).
 		WithEventFilter(pred).Complete(r)
+}
+
+func (r *VolumeReplicationReconciler) updateReplicationStatus(
+	ctx context.Context,
+	instance *replicationv1alpha1.VolumeReplication,
+	logger logr.Logger,
+	state replicationv1alpha1.State,
+	message string) error {
+	instance.Status.State = state
+	instance.Status.Message = message
+	instance.Status.ObservedGeneration = instance.Generation
+	if err := r.Client.Status().Update(ctx, instance); err != nil {
+		logger.Error(err, "failed to update status")
+
+		return err
+	}
+
+	return nil
 }
 
 func (r *VolumeReplicationReconciler) waitForCrds() error {
@@ -665,8 +665,8 @@ func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, repl
 
 // getVolumeContentSource is a helper function to process provisioning requests that include a DataSource
 // currently we provide Snapshot and PVC, the default case allows the provisioner to still create a volume
-// so that an external controller can act upon it.   Additional DataSource types can be added here with
-// an appropriate implementation function
+// so that an external controller can act upon it. Additional DataSource types can be added here with
+// an appropriate implementation function.
 func (r *VolumeReplicationReconciler) getReplicationSource(logger logr.Logger, kind string, volumeHandle string) (*replicationlib.ReplicationSource, error) {
 	switch kind {
 	case pvcDataSource:
