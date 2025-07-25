@@ -200,6 +200,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	replicationSource, err := r.getReplicationSource(logger, instance.Spec.DataSource.Kind, volumeHandle)
 	if err != nil {
 		logger.Error(err, "failed to update volumeReplication source", "VRName", instance.Name)
+
 		return ctrl.Result{}, nil
 	}
 	logger.Info("Replication source", "replicationSource", replicationSource)
@@ -685,6 +686,7 @@ func (r *VolumeReplicationReconciler) getReplicationSource(logger logr.Logger, k
 		replicationSource := &replicationlib.ReplicationSource{
 			Type: &volumeSource,
 		}
+
 		return replicationSource, nil
 
 	case volumeGroupDataSource:
@@ -696,6 +698,7 @@ func (r *VolumeReplicationReconciler) getReplicationSource(logger logr.Logger, k
 		replicationSource := &replicationlib.ReplicationSource{
 			Type: &volumeGroupSource,
 		}
+
 		return replicationSource, nil
 	default:
 		// For now we shouldn't pass other things to this function, but treat it as a noop and extend as needed

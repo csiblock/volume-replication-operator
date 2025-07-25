@@ -48,6 +48,7 @@ func (r VolumeReplicationReconciler) getVGDataSource(ctx context.Context, logger
 		if errors.IsNotFound(err) {
 			logger.Error(err, "VolumeGroupContent not found", "VolumeGroupContent Name", volumeGroupContentName)
 		}
+
 		return vg, nil, err
 	}
 
