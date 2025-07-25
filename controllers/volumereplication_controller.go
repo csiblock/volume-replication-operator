@@ -19,8 +19,9 @@ package controllers
 import (
 	"context"
 	"fmt"
-	volumegroupv1 "github.com/IBM/csi-volume-group-operator/api/v1"
 	"time"
+
+	volumegroupv1 "github.com/IBM/csi-volume-group-operator/api/v1"
 
 	replicationv1alpha1 "github.com/csi-addons/volume-replication-operator/api/v1alpha1"
 	"github.com/csi-addons/volume-replication-operator/controllers/replication"
@@ -432,7 +433,8 @@ func (r *VolumeReplicationReconciler) updateReplicationStatus(
 	instance *replicationv1alpha1.VolumeReplication,
 	logger logr.Logger,
 	state replicationv1alpha1.State,
-	message string) error {
+	message string,
+) error {
 	instance.Status.State = state
 	instance.Status.Message = message
 	instance.Status.ObservedGeneration = instance.Generation
@@ -490,7 +492,8 @@ func (r *VolumeReplicationReconciler) waitForVolumeReplicationResource(logger lo
 
 // markVolumeAsPrimary defines and runs a set of tasks required to mark a volume as primary.
 func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
-	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string) error {
+	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string,
+) error {
 	c := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
@@ -534,7 +537,8 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 
 // markVolumeAsSecondary defines and runs a set of tasks required to mark a volume as secondary.
 func (r *VolumeReplicationReconciler) markVolumeAsSecondary(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
-	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string) error {
+	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string,
+) error {
 	c := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
@@ -563,7 +567,8 @@ func (r *VolumeReplicationReconciler) markVolumeAsSecondary(volumeReplicationObj
 
 // resyncVolume defines and runs a set of tasks required to resync the volume.
 func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
-	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, parameters, secrets map[string]string) (bool, error) {
+	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, parameters, secrets map[string]string,
+) (bool, error) {
 	c := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
@@ -608,7 +613,8 @@ func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *repl
 
 // disableVolumeReplication defines and runs a set of tasks required to disable volume replication.
 func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string,
-	parameters, secrets map[string]string) error {
+	parameters, secrets map[string]string,
+) error {
 	c := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
@@ -639,7 +645,8 @@ func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logge
 
 // enableReplication enable volume replication on the first reconcile.
 func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string,
-	parameters, secrets map[string]string) error {
+	parameters, secrets map[string]string,
+) error {
 	c := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,

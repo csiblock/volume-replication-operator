@@ -17,6 +17,7 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
 	"testing"
 
 	replicationv1alpha1 "github.com/csi-addons/volume-replication-operator/api/v1alpha1"
@@ -29,8 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	"context"
 )
 
 const (

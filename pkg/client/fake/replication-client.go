@@ -41,7 +41,8 @@ func (rc *ReplicationClient) EnableVolumeReplication(
 	secrets,
 	parameters map[string]string) (
 	*replicationlib.EnableVolumeReplicationResponse,
-	error) {
+	error,
+) {
 	return rc.EnableVolumeReplicationMock(volumeID, replicationID, secrets, parameters)
 }
 
@@ -52,7 +53,8 @@ func (rc *ReplicationClient) DisableVolumeReplication(
 	secrets,
 	parameters map[string]string) (
 	*replicationlib.DisableVolumeReplicationResponse,
-	error) {
+	error,
+) {
 	return rc.DisableVolumeReplicationMock(volumeID, replicationID, secrets, parameters)
 }
 
@@ -64,7 +66,8 @@ func (rc *ReplicationClient) PromoteVolume(
 	secrets,
 	parameters map[string]string) (
 	*replicationlib.PromoteVolumeResponse,
-	error) {
+	error,
+) {
 	return rc.PromoteVolumeMock(volumeID, replicationID, force, secrets, parameters)
 }
 
@@ -75,7 +78,8 @@ func (rc *ReplicationClient) DemoteVolume(
 	secrets,
 	parameters map[string]string) (
 	*replicationlib.DemoteVolumeResponse,
-	error) {
+	error,
+) {
 	return rc.DemoteVolumeMock(volumeID, replicationID, secrets, parameters)
 }
 
@@ -86,6 +90,7 @@ func (rc *ReplicationClient) ResyncVolume(
 	secrets,
 	parameters map[string]string) (
 	*replicationlib.ResyncVolumeResponse,
-	error) {
+	error,
+) {
 	return rc.ResyncVolumeMock(volumeID, replicationID, secrets, parameters)
 }
