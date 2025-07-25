@@ -24,6 +24,7 @@ linters:
     - testpackage
     - wrapcheck
     - wsl
+    - exhaustruct
   settings:
     depguard:
       rules:

@@ -57,7 +57,7 @@ type VolumeReplicationClassList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 
-	Items           []VolumeReplicationClass `json:"items"`
+	Items []VolumeReplicationClass `json:"items"`
 }
 
 func init() {

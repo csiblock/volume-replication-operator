@@ -27,6 +27,7 @@ import (
 )
 
 // getVolumeReplicationClass get volume replication class object from the subjected namespace and return the same.
+//
 //nolint:gocritic
 func (r VolumeReplicationReconciler) getVolumeReplicationClass(ctx context.Context, logger logr.Logger, vrcName string) (*replicationv1alpha1.VolumeReplicationClass, error) {
 	vrcObj := &replicationv1alpha1.VolumeReplicationClass{}
