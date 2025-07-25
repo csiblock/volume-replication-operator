@@ -32,18 +32,23 @@ type replicationClient struct {
 // VolumeReplication holds the methods required for volume replication.
 type VolumeReplication interface {
 	// EnableVolumeReplication RPC call to enable the volume replication.
-	EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error)
+	EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource,
+		replicationID string, secrets, parameters map[string]string) (
+			*replicationlib.EnableVolumeReplicationResponse, error)
 	// DisableVolumeReplication RPC call to disable the volume replication.
-	DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error)
+	DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource,
+		replicationID string, secrets, parameters map[string]string) (
+			*replicationlib.DisableVolumeReplicationResponse, error)
 	// PromoteVolume RPC call to promote the volume.
-	PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
-		PromoteVolumeResponse, error)
+	PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
+		force bool, secrets, parameters map[string]string) (
+			*replicationlib.PromoteVolumeResponse, error)
 	// DemoteVolume RPC call to demote the volume.
-	DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, secrets, parameters map[string]string) (*replicationlib.
-		DemoteVolumeResponse, error)
+	DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
+		secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error)
 	// ResyncVolume RPC call to resync the volume.
-	ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.
-		ResyncVolumeResponse, error)
+	ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
+		force bool, secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error)
 }
 
 // NewReplicationClient returns VolumeReplication interface which has the RPC
