@@ -29,6 +29,8 @@ linters:
       rules:
         main:
           list-mode: lax
+          allow: []
+          deny: []
     cyclop:
       max-complexity: 20
     dogsled:
