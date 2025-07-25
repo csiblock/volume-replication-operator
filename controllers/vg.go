@@ -29,7 +29,8 @@ import (
 //
 //nolint:gocritic
 func (r VolumeReplicationReconciler) getVGDataSource(ctx context.Context, logger logr.Logger, req types.NamespacedName) (
-	*volumegroupv1.VolumeGroup, *volumegroupv1.VolumeGroupContent, error) {
+	*volumegroupv1.VolumeGroup, *volumegroupv1.VolumeGroupContent, error,
+) {
 	vg := &volumegroupv1.VolumeGroup{}
 	err := r.Client.Get(ctx, req, vg)
 	if err != nil {

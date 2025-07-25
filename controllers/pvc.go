@@ -30,7 +30,8 @@ import (
 //
 //nolint:gocritic
 func (r VolumeReplicationReconciler) getPVCDataSource(ctx context.Context, logger logr.Logger, req types.NamespacedName) (
-	*corev1.PersistentVolumeClaim, *corev1.PersistentVolume, error) {
+	*corev1.PersistentVolumeClaim, *corev1.PersistentVolume, error,
+) {
 	pvc := &corev1.PersistentVolumeClaim{}
 	err := r.Client.Get(ctx, req, pvc)
 	if err != nil {

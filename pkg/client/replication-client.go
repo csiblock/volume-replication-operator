@@ -34,15 +34,15 @@ type VolumeReplication interface {
 	// EnableVolumeReplication RPC call to enable the volume replication.
 	EnableVolumeReplication(replicationSource *replicationlib.ReplicationSource,
 		replicationID string, secrets, parameters map[string]string) (
-			*replicationlib.EnableVolumeReplicationResponse, error)
+		*replicationlib.EnableVolumeReplicationResponse, error)
 	// DisableVolumeReplication RPC call to disable the volume replication.
 	DisableVolumeReplication(replicationSource *replicationlib.ReplicationSource,
 		replicationID string, secrets, parameters map[string]string) (
-			*replicationlib.DisableVolumeReplicationResponse, error)
+		*replicationlib.DisableVolumeReplicationResponse, error)
 	// PromoteVolume RPC call to promote the volume.
 	PromoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 		force bool, secrets, parameters map[string]string) (
-			*replicationlib.PromoteVolumeResponse, error)
+		*replicationlib.PromoteVolumeResponse, error)
 	// DemoteVolume RPC call to demote the volume.
 	DemoteVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 		secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error)
