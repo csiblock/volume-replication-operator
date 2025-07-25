@@ -197,7 +197,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	logger.Info("volume handle", "VolumeHandleName", volumeHandle)
-	replicationSource, err := r.getReplicationSource(logger, instance.Spec.DataSource.Kind, volumeHandle)
+	replicationSource, err := r.getReplicationSource(instance.Spec.DataSource.Kind, volumeHandle)
 	if err != nil {
 		logger.Error(err, "failed to update volumeReplication source", "VRName", instance.Name)
 
@@ -675,7 +675,7 @@ func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, repl
 // currently we provide Snapshot and PVC, the default case allows the provisioner to still create a volume
 // so that an external controller can act upon it. Additional DataSource types can be added here with
 // an appropriate implementation function.
-func (r *VolumeReplicationReconciler) getReplicationSource(logger logr.Logger, kind string, volumeHandle string) (*replicationlib.ReplicationSource, error) {
+func (r *VolumeReplicationReconciler) getReplicationSource(kind string, volumeHandle string) (*replicationlib.ReplicationSource, error) {
 	switch kind {
 	case pvcDataSource:
 		volumeSource := replicationlib.ReplicationSource_Volume{
