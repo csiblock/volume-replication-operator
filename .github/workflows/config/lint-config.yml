@@ -25,6 +25,10 @@ linters:
     - wrapcheck
     - wsl
   settings:
+    depguard:
+      rules:
+        main:
+          list-mode: lax
     cyclop:
       max-complexity: 20
     dogsled:
