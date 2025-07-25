@@ -29,8 +29,12 @@ linters:
       rules:
         main:
           list-mode: lax
-          allow: []
-          deny: []
+          allow:
+            - github.com
+            - k8s.io
+            - sigs.k8s.io
+            - google.golang.org
+            - go.uber.org
     cyclop:
       max-complexity: 20
     dogsled:
