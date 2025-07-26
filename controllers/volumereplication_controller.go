@@ -186,6 +186,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 			return ctrl.Result{}, vgErr
 		}
+
 		volumeHandle = vgc.Spec.Source.VolumeGroupHandle
 	default:
 		err = fmt.Errorf("unsupported datasource kind")
@@ -301,7 +302,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	var requeueForResync bool
 
-
 	switch instance.Spec.ReplicationState {
 	case replicationv1alpha1.Primary:
 		replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret)
@@ -342,6 +342,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		replicationErr = fmt.Errorf("unsupported volume state")
 		logger.Error(replicationErr, "given volume state is not supported", "ReplicationState", instance.Spec.ReplicationState)
 		setFailureCondition(instance)
+
 		err = r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), replicationErr.Error())
 		if err != nil {
 			logger.Error(err, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -544,6 +545,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 			logger.Info("force promoting volume due to known grpc error", "error", resp.Error)
 
 			volumeReplication.Force = true
+
 			resp := volumeReplication.Promote()
 			if resp.Error != nil {
 				logger.Error(resp.Error, "failed to force promote volume")
@@ -614,6 +616,7 @@ func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *repl
 
 		return false, resp.Error
 	}
+
 	resyncResponse, ok := resp.Response.(*replicationlib.ResyncVolumeResponse)
 	if !ok {
 		err := fmt.Errorf("received response of unexpected type")
