@@ -675,7 +675,7 @@ func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, repl
 // currently we provide Snapshot and PVC, the default case allows the provisioner to still create a volume
 // so that an external controller can act upon it. Additional DataSource types can be added here with
 // an appropriate implementation function.
-func (r *VolumeReplicationReconciler) getReplicationSource(kind string, volumeHandle string) (*replicationlib.ReplicationSource, error) {
+func (r *VolumeReplicationReconciler) getReplicationSource(kind string, volumeHandle string) *replicationlib.ReplicationSource {
 	switch kind {
 	case pvcDataSource:
 		volumeSource := replicationlib.ReplicationSource_Volume{
@@ -687,7 +687,7 @@ func (r *VolumeReplicationReconciler) getReplicationSource(kind string, volumeHa
 			Type: &volumeSource,
 		}
 
-		return replicationSource, nil
+		return replicationSource
 
 	case volumeGroupDataSource:
 		volumeGroupSource := replicationlib.ReplicationSource_Volumegroup{
@@ -699,10 +699,10 @@ func (r *VolumeReplicationReconciler) getReplicationSource(kind string, volumeHa
 			Type: &volumeGroupSource,
 		}
 
-		return replicationSource, nil
+		return replicationSource
 	default:
 		// For now we shouldn't pass other things to this function, but treat it as a noop and extend as needed
-		return nil, nil
+		return nil
 	}
 }
 
