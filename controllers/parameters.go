@@ -37,9 +37,9 @@ const (
 // replicationclass which are matching the prefix.
 func filterPrefixedParameters(prefix string, param map[string]string) map[string]string {
 	newParam := map[string]string{}
-	for k, v := range param {
-		if !strings.HasPrefix(k, prefix) {
-			newParam[k] = v
+	for key, val := range param {
+		if !strings.HasPrefix(key, prefix) {
+			newParam[key] = val
 		}
 	}
 
@@ -49,21 +49,21 @@ func filterPrefixedParameters(prefix string, param map[string]string) map[string
 // validatePrefixParameters checks for unknown reserved keys in parameters and
 // empty values for reserved keys.
 func validatePrefixedParameters(param map[string]string) error {
-	for k, v := range param {
-		if strings.HasPrefix(k, replicationParameterPrefix) {
-			switch k {
+	for key, val := range param {
+		if strings.HasPrefix(key, replicationParameterPrefix) {
+			switch key {
 			case prefixedReplicationSecretNameKey:
-				if v == "" {
+				if val == "" {
 					return errors.New("secret name cannot be empty")
 				}
 			case prefixedReplicationSecretNamespaceKey:
-				if v == "" {
+				if val == "" {
 					return errors.New("secret namespace cannot be empty")
 				}
 			// keep adding known prefixes to this list.
 			default:
 
-				return fmt.Errorf("found unknown parameter key %q with reserved prefix %s", k, replicationParameterPrefix)
+				return fmt.Errorf("found unknown parameter key %q with reserved prefix %s", key, replicationParameterPrefix)
 			}
 		}
 	}

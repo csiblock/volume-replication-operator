@@ -106,7 +106,7 @@ func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
 		return false
 	}
 
-	s, ok := status.FromError(r.Error)
+	grpcStatus, ok := status.FromError(r.Error)
 	if !ok {
 		// This is not gRPC error. The operation must have failed before gRPC
 		// method was called, otherwise we would get gRPC error.
@@ -114,7 +114,7 @@ func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
 	}
 
 	for _, e := range knownErrors {
-		if s.Code() == e {
+		if grpcStatus.Code() == e {
 			return true
 		}
 	}
@@ -124,12 +124,12 @@ func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
 
 // GetMessageFromError returns the message from the error.
 func GetMessageFromError(err error) string {
-	s, ok := status.FromError(err)
+	grpcStatus, ok := status.FromError(err)
 	if !ok {
 		// This is not gRPC error. The operation must have failed before gRPC
 		// method was called, otherwise we would get gRPC error.
 		return err.Error()
 	}
 
-	return s.Message()
+	return grpcStatus.Message()
 }

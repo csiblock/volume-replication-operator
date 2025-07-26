@@ -409,19 +409,19 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 	pred := predicate.GenerationChangedPredicate{}
 
 	r.DriverConfig = cfg
-	c, err := grpcClient.New(cfg.DriverEndpoint, cfg.RPCTimeout)
+	grpcClient, err := grpcClient.New(cfg.DriverEndpoint, cfg.RPCTimeout)
 	if err != nil {
 		r.Log.Error(err, "failed to create GRPC Client", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)
 
 		return err
 	}
-	err = c.Probe()
+	err = grpcClient.Probe()
 	if err != nil {
 		r.Log.Error(err, "failed to connect to driver", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)
 
 		return err
 	}
-	r.GRPCClient = c
+	r.GRPCClient = grpcClient
 	r.Replication = grpcClient.NewReplicationClient(r.GRPCClient.Client, cfg.RPCTimeout)
 
 	return ctrl.NewControllerManagedBy(mgr).
@@ -616,7 +616,7 @@ func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *repl
 func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string,
 	parameters, secrets map[string]string,
 ) error {
-	c := replication.CommonRequestParameters{
+	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
 		Parameters:        parameters,
@@ -625,7 +625,7 @@ func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logge
 	}
 
 	volumeReplication := replication.Replication{
-		Params: c,
+		Params: params,
 	}
 
 	resp := volumeReplication.Disable()
@@ -648,7 +648,7 @@ func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logge
 func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string,
 	parameters, secrets map[string]string,
 ) error {
-	c := replication.CommonRequestParameters{
+	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
 		Parameters:        parameters,
@@ -657,7 +657,7 @@ func (r *VolumeReplicationReconciler) enableReplication(logger logr.Logger, repl
 	}
 
 	volumeReplication := replication.Replication{
-		Params: c,
+		Params: params,
 	}
 
 	resp := volumeReplication.Enable()

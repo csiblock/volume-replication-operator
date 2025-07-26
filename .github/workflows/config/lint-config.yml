@@ -31,6 +31,13 @@ linters:
     - perfsprint
     - recvcheck
   settings:
+    varnamelen:
+      ignore-names:
+        - pv
+        - pvc
+        - vg
+        - vr
+        - tc
     depguard:
       rules:
         main:
