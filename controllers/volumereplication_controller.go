@@ -507,7 +507,7 @@ func (r *VolumeReplicationReconciler) waitForVolumeReplicationResource(logger lo
 func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
 	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string,
 ) error {
-	c := replication.CommonRequestParameters{
+	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
 		Parameters:        parameters,
@@ -516,7 +516,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 	}
 
 	volumeReplication := replication.Replication{
-		Params: c,
+		Params: params,
 	}
 
 	resp := volumeReplication.Promote()
@@ -552,7 +552,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 func (r *VolumeReplicationReconciler) markVolumeAsSecondary(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
 	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string,
 ) error {
-	c := replication.CommonRequestParameters{
+	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
 		Parameters:        parameters,
@@ -561,7 +561,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsSecondary(volumeReplicationObj
 	}
 
 	volumeReplication := replication.Replication{
-		Params: c,
+		Params: params,
 	}
 
 	resp := volumeReplication.Demote()
@@ -582,7 +582,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsSecondary(volumeReplicationObj
 func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
 	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, force bool, parameters, secrets map[string]string,
 ) (bool, error) {
-	c := replication.CommonRequestParameters{
+	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
 		Parameters:        parameters,
@@ -591,7 +591,7 @@ func (r *VolumeReplicationReconciler) resyncVolume(volumeReplicationObject *repl
 	}
 
 	volumeReplication := replication.Replication{
-		Params: c,
+		Params: params,
 		Force:  force,
 	}
 
