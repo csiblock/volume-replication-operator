@@ -100,6 +100,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	vrcObj, err := r.getVolumeReplicationClass(ctx, logger, instance.Spec.VolumeReplicationClass)
 	if err != nil {
 		setFailureCondition(instance)
+
 		uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), err.Error())
 		if uErr != nil {
 			logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -293,6 +294,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		setFailureCondition(instance)
 
 		msg := replication.GetMessageFromError(err)
+
 		uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), msg)
 		if uErr != nil {
 			logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -430,6 +432,7 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 	pred := predicate.GenerationChangedPredicate{}
 
 	r.DriverConfig = cfg
+
 	gClient, err := grpcClient.New(cfg.DriverEndpoint, cfg.RPCTimeout)
 	if err != nil {
 		r.Log.Error(err, "failed to create GRPC Client", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)

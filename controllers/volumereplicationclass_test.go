@@ -39,6 +39,7 @@ var mockVolumeReplicationClassObj = &replicationv1alpha1.VolumeReplicationClass{
 
 func TestGetVolumeReplicaClass(t *testing.T) {
 	t.Parallel()
+
 	testcases := []struct {
 		createVrc       bool
 		errorExpected   bool

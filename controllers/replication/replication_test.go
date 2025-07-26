@@ -26,6 +26,7 @@ import (
 
 func TestGetMessageFromError(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name string
 		err  error

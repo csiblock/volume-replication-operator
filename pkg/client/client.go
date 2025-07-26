@@ -47,6 +47,7 @@ func New(address string, timeout time.Duration) (*Client, error) {
 	if err != nil {
 		return client, err
 	}
+
 	client.Client = conn
 	client.Timeout = timeout
 
