@@ -28,6 +28,9 @@ linters:
     - goimports
     - gocritic
   settings:
+    ireturn:
+      allow:
+        - '.*VolumeReplication$'
     depguard:
       rules:
         main:
