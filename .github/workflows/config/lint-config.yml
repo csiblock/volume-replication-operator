@@ -25,7 +25,6 @@ linters:
     - wrapcheck
     - wsl
     - exhaustruct
-    - goimports
     - gocritic
   settings:
     ireturn:
@@ -97,7 +96,6 @@ formatters:
   enable:
     - gofmt
     - gofumpt
-    - goimports
   settings:
     gofmt:
       simplify: true
