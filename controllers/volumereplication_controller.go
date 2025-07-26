@@ -210,7 +210,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// check if the object is being deleted
 	if instance.GetDeletionTimestamp().IsZero() {
 		err = r.addFinalizerToVR(ctx, logger, instance)
-		err != nil {
+		if err != nil {
 			logger.Error(err, "Failed to add VolumeReplication finalizer")
 
 			return reconcile.Result{}, err
