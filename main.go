@@ -137,7 +137,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	err := (&controllers.VolumeReplicationReconciler{
+	err = (&controllers.VolumeReplicationReconciler{
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("VolumeReplication"),
 		Scheme: mgr.GetScheme(),
@@ -149,19 +149,20 @@ func main() {
 
 	// +kubebuilder:scaffold:builder
 
-	err := mgr.AddHealthzCheck("health", healthz.Ping)
+	err = mgr.AddHealthzCheck("health", healthz.Ping)
 	if err != nil {
 		setupLog.Error(err, "unable to set up health check")
 		os.Exit(1)
 	}
-	err := mgr.AddReadyzCheck("check", healthz.Ping)
+
+	err = mgr.AddReadyzCheck("check", healthz.Ping)
 	if err != nil {
 		setupLog.Error(err, "unable to set up ready check")
 		os.Exit(1)
 	}
 
 	setupLog.Info("starting manager")
-	err := mgr.Start(ctrl.SetupSignalHandler())
+	err = mgr.Start(ctrl.SetupSignalHandler())
 	if err != nil {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
