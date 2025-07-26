@@ -28,6 +28,7 @@ import (
 
 func TestEnableVolumeReplication(t *testing.T) {
 	t.Parallel()
+
 	mockedEnableReplication := &fake.ReplicationClient{
 		EnableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
 			return &replicationlib.EnableVolumeReplicationResponse{}, nil
@@ -52,6 +53,7 @@ func TestEnableVolumeReplication(t *testing.T) {
 
 func TestDisableVolumeReplication(t *testing.T) {
 	t.Parallel()
+
 	mockedDisableReplication := &fake.ReplicationClient{
 		DisableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
 			return &replicationlib.DisableVolumeReplicationResponse{}, nil

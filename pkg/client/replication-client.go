@@ -109,6 +109,7 @@ func (rc *replicationClient) PromoteVolume(replicationSource *replicationlib.Rep
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
+
 	resp, err := rc.client.PromoteVolume(createCtx, req)
 
 	return resp, err
@@ -127,6 +128,7 @@ func (rc *replicationClient) DemoteVolume(replicationSource *replicationlib.Repl
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
+
 	resp, err := rc.client.DemoteVolume(createCtx, req)
 
 	return resp, err
