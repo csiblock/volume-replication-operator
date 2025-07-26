@@ -71,7 +71,7 @@ func TestGetVolumeReplicaClass(t *testing.T) {
 			}
 		} else {
 			require.NoError(t, err)
-			require.NotEqual(t, nil, vrcObj)
+			require.NotNil(t, vrcObj)
 		}
 	}
 }

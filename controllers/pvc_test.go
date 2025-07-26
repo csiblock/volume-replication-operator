@@ -172,8 +172,8 @@ func TestGetVolumeHandle(t *testing.T) {
 			require.Error(t, err)
 		} else {
 			require.NoError(t, err)
-			require.NotEqual(t, nil, resultPVC)
-			require.NotEqual(t, nil, resultPV)
+			require.NotNil(t, resultPVC)
+			require.NotNil(t, resultPV)
 			require.Equal(t, tc.expectedVolumeHandle, resultPV.Spec.CSI.VolumeHandle)
 		}
 	}
