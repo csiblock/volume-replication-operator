@@ -78,24 +78,23 @@ func TestPromoteVolume(t *testing.T) {
 	t.Parallel()
 	// return success response
 	mockedPromoteVolume := &fake.ReplicationClient{
-		PromoteVolumeMock: func(_, _ string, force bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
+		PromoteVolumeMock: func(_, _ string, _ bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 			return &replicationlib.PromoteVolumeResponse{}, nil
 		},
 	}
-	force := false
 	client := mockedPromoteVolume
-	resp, err := client.PromoteVolume("", "", force, nil, nil)
+	resp, err := client.PromoteVolume("", "", false, nil, nil)
 	require.Equal(t, &replicationlib.PromoteVolumeResponse{}, resp)
 	require.Nil(t, err)
 
 	// return error
 	mockedPromoteVolume = &fake.ReplicationClient{
-		PromoteVolumeMock: func(_, _ string, force bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
+		PromoteVolumeMock: func(_, _ string, _ bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 			return nil, errors.New("failed to promote volume")
 		},
 	}
 	client = mockedPromoteVolume
-	resp, err = client.PromoteVolume("", "", force, nil, nil)
+	resp, err = client.PromoteVolume("", "", false, nil, nil)
 	require.Nil(t, resp)
 	require.NotNil(t, err)
 }
