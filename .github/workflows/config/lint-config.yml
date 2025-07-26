@@ -25,6 +25,7 @@ linters:
     - wrapcheck
     - wsl
     - exhaustruct
+    - goimports
   settings:
     depguard:
       rules:
