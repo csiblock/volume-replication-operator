@@ -36,6 +36,7 @@ type Client struct {
 func connect(address string, timeout time.Duration) (*grpc.ClientConn, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
+
 	return connection.Connect(ctx, address, metrics.NewCSIMetricsManager(""), connection.OnConnectionLoss(connection.ExitOnConnectionLoss()))
 }
 
@@ -56,6 +57,7 @@ func New(address string, timeout time.Duration) (*Client, error) {
 func (c *Client) Probe() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.Timeout)
 	defer cancel()
+
 	return rpc.ProbeForever(ctx, c.Client, c.Timeout)
 }
 
