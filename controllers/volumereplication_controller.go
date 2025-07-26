@@ -197,12 +197,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	logger.Info("volume handle", "VolumeHandleName", volumeHandle)
-	replicationSource, err := r.getReplicationSource(instance.Spec.DataSource.Kind, volumeHandle)
-	if err != nil {
-		logger.Error(err, "failed to update volumeReplication source", "VRName", instance.Name)
-
-		return ctrl.Result{}, nil
-	}
+	replicationSource := r.getReplicationSource(instance.Spec.DataSource.Kind, volumeHandle)
 	logger.Info("Replication source", "replicationSource", replicationSource)
 
 	if replicationHandle != "" {
@@ -416,19 +411,19 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 	pred := predicate.GenerationChangedPredicate{}
 
 	r.DriverConfig = cfg
-	grpcClient, err := grpcClient.New(cfg.DriverEndpoint, cfg.RPCTimeout)
+	gClient, err := grpcClient.New(cfg.DriverEndpoint, cfg.RPCTimeout)
 	if err != nil {
 		r.Log.Error(err, "failed to create GRPC Client", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)
 
 		return err
 	}
-	err = grpcClient.Probe()
+	err = gClient.Probe()
 	if err != nil {
 		r.Log.Error(err, "failed to connect to driver", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)
 
 		return err
 	}
-	r.GRPCClient = grpcClient
+	r.GRPCClient = gClient
 	r.Replication = grpcClient.NewReplicationClient(r.GRPCClient.Client, cfg.RPCTimeout)
 
 	return ctrl.NewControllerManagedBy(mgr).
