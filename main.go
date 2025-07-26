@@ -63,13 +63,9 @@ func init() {
 
 func main() {
 	var metricsAddr string
-
 	var leaderElectionNamespace string
-	
 	var enableLeaderElection bool
-	
 	var probeAddr string
-	
 	var opts zap.Options
 
 	if strings.EqualFold(os.Getenv("DEVELOPMENT_MODE"), "true") {
