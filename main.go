@@ -63,9 +63,13 @@ func init() {
 
 func main() {
 	var metricsAddr string
+
 	var leaderElectionNamespace string
+	
 	var enableLeaderElection bool
+	
 	var probeAddr string
+	
 	var opts zap.Options
 
 	if strings.EqualFold(os.Getenv("DEVELOPMENT_MODE"), "true") {
@@ -162,6 +166,7 @@ func main() {
 	}
 
 	setupLog.Info("starting manager")
+
 	err = mgr.Start(ctrl.SetupSignalHandler())
 	if err != nil {
 		setupLog.Error(err, "problem running manager")

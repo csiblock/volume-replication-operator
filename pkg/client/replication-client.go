@@ -122,6 +122,7 @@ func (rc *replicationClient) DemoteVolume(replicationSource *replicationlib.Repl
 		Parameters:        parameters,
 		Secrets:           secrets,
 	}
+
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
 	resp, err := rc.client.DemoteVolume(createCtx, req)

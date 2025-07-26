@@ -36,6 +36,7 @@ func (r *VolumeReplicationReconciler) getSecret(ctx context.Context, logger logr
 
 			return nil, err
 		}
+
 		logger.Error(err, "error getting secret", "Secret Name", name, "Secret Namespace", namespace)
 
 		return nil, err

@@ -37,6 +37,7 @@ const (
 // replicationclass which are matching the prefix.
 func filterPrefixedParameters(prefix string, param map[string]string) map[string]string {
 	newParam := map[string]string{}
+
 	for key, val := range param {
 		if !strings.HasPrefix(key, prefix) {
 			newParam[key] = val
@@ -62,7 +63,6 @@ func validatePrefixedParameters(param map[string]string) error {
 				}
 			// keep adding known prefixes to this list.
 			default:
-
 				return fmt.Errorf("found unknown parameter key %q with reserved prefix %s", key, replicationParameterPrefix)
 			}
 		}

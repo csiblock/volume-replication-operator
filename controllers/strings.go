@@ -33,6 +33,7 @@ func remove(slice []string, s string) (result []string) {
 		if item == s {
 			continue
 		}
+
 		result = append(result, item)
 	}
 
