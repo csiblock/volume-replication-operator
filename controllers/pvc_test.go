@@ -80,14 +80,17 @@ var mockPersistentVolumeClaim = &corev1.PersistentVolumeClaim{
 
 func createFakeScheme(t *testing.T) *runtime.Scheme {
 	t.Helper()
+
 	scheme, err := replicationv1alpha1.SchemeBuilder.Build()
 	if err != nil {
 		require.Fail(t, "unable to build scheme")
 	}
+
 	err = corev1.AddToScheme(scheme)
 	if err != nil {
 		require.Fail(t, "failed to add corev1 scheme")
 	}
+
 	err = replicationv1alpha1.AddToScheme(scheme)
 	if err != nil {
 		require.Fail(t, "failed to add replicationv1alpha1 scheme")
@@ -98,6 +101,7 @@ func createFakeScheme(t *testing.T) *runtime.Scheme {
 
 func createFakeVolumeReplicationReconciler(t *testing.T, obj ...runtime.Object) VolumeReplicationReconciler {
 	t.Helper()
+
 	scheme := createFakeScheme(t)
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(obj...).Build()
 

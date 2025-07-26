@@ -63,7 +63,9 @@ func init() {
 
 func main() {
 	var metricsAddr string
+
 	var leaderElectionNamespace string
+
 	var probeAddr string
 
 	var enableLeaderElection bool

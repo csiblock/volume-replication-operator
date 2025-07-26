@@ -116,6 +116,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if err != nil {
 		logger.Error(err, "failed to validate parameters of volumeReplicationClass", "VRCName", instance.Spec.VolumeReplicationClass)
 		setFailureCondition(instance)
+
 		uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), err.Error())
 		if uErr != nil {
 			logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -179,6 +180,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if vgErr != nil {
 			logger.Error(vgErr, "failed to get VG", "VGName", instance.Spec.DataSource.Name)
 			setFailureCondition(instance)
+
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), vgErr.Error())
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -192,6 +194,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		err = fmt.Errorf("unsupported datasource kind")
 		logger.Error(err, "given kind not supported", "Kind", instance.Spec.DataSource.Kind)
 		setFailureCondition(instance)
+
 		uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), err.Error())
 		if uErr != nil {
 			logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
