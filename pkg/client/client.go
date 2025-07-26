@@ -43,6 +43,7 @@ func connect(address string, timeout time.Duration) (*grpc.ClientConn, error) {
 // New creates and returns the GRPC client.
 func New(address string, timeout time.Duration) (*Client, error) {
 	client := &Client{}
+
 	conn, err := connect(address, timeout)
 	if err != nil {
 		return client, err

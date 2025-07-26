@@ -172,6 +172,7 @@ func TestGetVolumeHandle(t *testing.T) {
 		}
 
 		reconciler := createFakeVolumeReplicationReconciler(t, testPV, testPVC, volumeReplication)
+
 		resultPVC, resultPV, err := reconciler.getPVCDataSource(context.TODO(), reconciler.Log, namespacedName)
 		if tc.errorExpected {
 			require.Error(t, err)

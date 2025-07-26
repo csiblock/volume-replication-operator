@@ -465,6 +465,7 @@ func (r *VolumeReplicationReconciler) updateReplicationStatus(
 	instance.Status.State = state
 	instance.Status.Message = message
 	instance.Status.ObservedGeneration = instance.Generation
+
 	err := r.Client.Status().Update(ctx, instance)
 	if err != nil {
 		logger.Error(err, "failed to update status")

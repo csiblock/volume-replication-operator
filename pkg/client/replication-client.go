@@ -70,6 +70,7 @@ func (rc *replicationClient) EnableVolumeReplication(replicationSource *replicat
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
+
 	resp, err := rc.client.EnableVolumeReplication(createCtx, req)
 
 	return resp, err
@@ -88,6 +89,7 @@ func (rc *replicationClient) DisableVolumeReplication(replicationSource *replica
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
+
 	resp, err := rc.client.DisableVolumeReplication(createCtx, req)
 
 	return resp, err
@@ -144,6 +146,7 @@ func (rc *replicationClient) ResyncVolume(replicationSource *replicationlib.Repl
 
 	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
 	defer cancel()
+
 	resp, err := rc.client.ResyncVolume(createCtx, req)
 
 	return resp, err
