@@ -206,14 +206,16 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// check if the object is being deleted
 	if instance.GetDeletionTimestamp().IsZero() {
-		if err = r.addFinalizerToVR(ctx, logger, instance); err != nil {
+		err = r.addFinalizerToVR(ctx, logger, instance)
+		err != nil {
 			logger.Error(err, "Failed to add VolumeReplication finalizer")
 
 			return reconcile.Result{}, err
 		}
 
 		if pvc != nil {
-			if err = r.addFinalizerToPVC(ctx, logger, pvc); err != nil {
+			err = r.addFinalizerToPVC(ctx, logger, pvc)
+			if err != nil {
 				logger.Error(err, "Failed to add PersistentVolumeClaim finalizer")
 
 				return reconcile.Result{}, err
@@ -221,7 +223,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		if vg != nil {
-			if err = r.addFinalizerToVG(ctx, logger, vg); err != nil {
+			err = r.addFinalizerToVG(ctx, logger, vg)
+			if err != nil {
 				logger.Error(err, "Failed to add VolumeGroup finalizer")
 
 				return reconcile.Result{}, err
@@ -237,14 +240,16 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 
 			if pvc != nil {
-				if err = r.removeFinalizerFromPVC(ctx, logger, pvc); err != nil {
+				err = r.removeFinalizerFromPVC(ctx, logger, pvc)
+				if err != nil {
 					logger.Error(err, "Failed to remove PersistentVolumeClaim finalizer")
 
 					return reconcile.Result{}, err
 				}
 			}
 			if vg != nil {
-				if err = r.removeFinalizerFromVG(ctx, logger, vg); err != nil {
+				err = r.removeFinalizerFromVG(ctx, logger, vg)
+				if err != nil {
 					logger.Error(err, "Failed to remove VolumeGroup finalizer")
 
 					return reconcile.Result{}, err
@@ -252,7 +257,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			}
 			// once all finalizers have been removed, the object will be
 			// deleted
-			if err = r.removeFinalizerFromVR(ctx, logger, instance); err != nil {
+			err = r.removeFinalizerFromVR(ctx, logger, instance)
+			if err != nil {
 				logger.Error(err, "Failed to remove VolumeReplication finalizer")
 
 				return reconcile.Result{}, err
@@ -265,14 +271,16 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	instance.Status.LastStartTime = getCurrentTime()
-	if err = r.Client.Update(ctx, instance); err != nil {
+	err = r.Client.Update(ctx, instance)
+	if err != nil {
 		logger.Error(err, "failed to update status")
 
 		return reconcile.Result{}, err
 	}
 
 	// enable replication on every reconcile
-	if err = r.enableReplication(logger, replicationSource, replicationHandle, parameters, secret); err != nil {
+	err = r.enableReplication(logger, replicationSource, replicationHandle, parameters, secret)
+	if err != nil {
 		logger.Error(err, "failed to enable replication")
 		setFailureCondition(instance)
 
@@ -441,7 +449,8 @@ func (r *VolumeReplicationReconciler) updateReplicationStatus(
 	instance.Status.State = state
 	instance.Status.Message = message
 	instance.Status.ObservedGeneration = instance.Generation
-	if err := r.Client.Status().Update(ctx, instance); err != nil {
+	err := r.Client.Status().Update(ctx, instance)
+	if err != nil {
 		logger.Error(err, "failed to update status")
 
 		return err
@@ -634,7 +643,8 @@ func (r *VolumeReplicationReconciler) disableVolumeReplication(logger logr.Logge
 	resp := volumeReplication.Disable()
 
 	if resp.Error != nil {
-		if isKnownError := resp.HasKnownGRPCError(disableReplicationKnownErrors); isKnownError {
+		isKnownError := resp.HasKnownGRPCError(disableReplicationKnownErrors)
+		if isKnownError {
 			logger.Info("volume not found", "replicationSource", replicationSource)
 
 			return nil
