@@ -29,7 +29,7 @@ import (
 func TestEnableVolumeReplication(t *testing.T) {
 	t.Parallel()
 	mockedEnableReplication := &fake.ReplicationClient{
-		EnableVolumeReplicationMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
+		EnableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
 			return &replicationlib.EnableVolumeReplicationResponse{}, nil
 		},
 	}
@@ -40,7 +40,7 @@ func TestEnableVolumeReplication(t *testing.T) {
 
 	// return error
 	mockedEnableReplication = &fake.ReplicationClient{
-		EnableVolumeReplicationMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
+		EnableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.EnableVolumeReplicationResponse, error) {
 			return nil, errors.New("failed to enable mirroring")
 		},
 	}
@@ -53,7 +53,7 @@ func TestEnableVolumeReplication(t *testing.T) {
 func TestDisableVolumeReplication(t *testing.T) {
 	t.Parallel()
 	mockedDisableReplication := &fake.ReplicationClient{
-		DisableVolumeReplicationMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
+		DisableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
 			return &replicationlib.DisableVolumeReplicationResponse{}, nil
 		},
 	}
@@ -64,7 +64,7 @@ func TestDisableVolumeReplication(t *testing.T) {
 
 	// return error
 	mockedDisableReplication = &fake.ReplicationClient{
-		DisableVolumeReplicationMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
+		DisableVolumeReplicationMock: func(_, _ string, _, _ map[string]string) (*replicationlib.DisableVolumeReplicationResponse, error) {
 			return nil, errors.New("failed to disable mirroring")
 		},
 	}
@@ -78,7 +78,7 @@ func TestPromoteVolume(t *testing.T) {
 	t.Parallel()
 	// return success response
 	mockedPromoteVolume := &fake.ReplicationClient{
-		PromoteVolumeMock: func(volumeID, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
+		PromoteVolumeMock: func(_, _ string, force bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 			return &replicationlib.PromoteVolumeResponse{}, nil
 		},
 	}
@@ -90,7 +90,7 @@ func TestPromoteVolume(t *testing.T) {
 
 	// return error
 	mockedPromoteVolume = &fake.ReplicationClient{
-		PromoteVolumeMock: func(volumeID, replicationID string, force bool, secrets, parameters map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
+		PromoteVolumeMock: func(_, _ string, force bool, _, _ map[string]string) (*replicationlib.PromoteVolumeResponse, error) {
 			return nil, errors.New("failed to promote volume")
 		},
 	}
@@ -104,7 +104,7 @@ func TestDemoteVolume(t *testing.T) {
 	t.Parallel()
 	// return success response
 	mockedDemoteVolume := &fake.ReplicationClient{
-		DemoteVolumeMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
+		DemoteVolumeMock: func(_, _ string, _, _ map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
 			return &replicationlib.DemoteVolumeResponse{}, nil
 		},
 	}
@@ -115,7 +115,7 @@ func TestDemoteVolume(t *testing.T) {
 
 	// return error
 	mockedDemoteVolume = &fake.ReplicationClient{
-		DemoteVolumeMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
+		DemoteVolumeMock: func(_, _ string, _, _ map[string]string) (*replicationlib.DemoteVolumeResponse, error) {
 			return nil, errors.New("failed to demote volume")
 		},
 	}
@@ -129,7 +129,7 @@ func TestResyncVolume(t *testing.T) {
 	t.Parallel()
 	// return success response
 	mockedResyncVolume := &fake.ReplicationClient{
-		ResyncVolumeMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
+		ResyncVolumeMock: func(_, _ string, _, _ map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
 			return &replicationlib.ResyncVolumeResponse{}, nil
 		},
 	}
@@ -140,7 +140,7 @@ func TestResyncVolume(t *testing.T) {
 
 	// return error
 	mockedResyncVolume = &fake.ReplicationClient{
-		ResyncVolumeMock: func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
+		ResyncVolumeMock: func(_, _ string, _, _ map[string]string) (*replicationlib.ResyncVolumeResponse, error) {
 			return nil, errors.New("failed to resync volume")
 		},
 	}
