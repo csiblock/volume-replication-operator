@@ -26,10 +26,8 @@ linters:
     - wsl
     - exhaustruct
     - gocritic
+    - ireturn
   settings:
-    ireturn:
-      allow:
-        - '.*VolumeReplication$'
     depguard:
       rules:
         main:
