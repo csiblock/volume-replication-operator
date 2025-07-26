@@ -29,6 +29,7 @@ linters:
     - ireturn
     - nonamedreturns
     - perfsprint
+    - recvcheck
   settings:
     depguard:
       rules:
