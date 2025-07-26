@@ -27,6 +27,7 @@ linters:
     - exhaustruct
     - gocritic
     - ireturn
+    - nonamedreturns
   settings:
     depguard:
       rules:
