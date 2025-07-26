@@ -28,6 +28,7 @@ linters:
     - gocritic
     - ireturn
     - nonamedreturns
+    - perfsprint
   settings:
     depguard:
       rules:
