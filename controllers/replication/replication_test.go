@@ -51,7 +51,9 @@ func TestGetMessageFromError(t *testing.T) {
 		newtt := tt
 		t.Run(newtt.name, func(t *testing.T) {
 			t.Parallel()
-			if got := GetMessageFromError(newtt.err); got != newtt.want {
+
+			got := GetMessageFromError(newtt.err)
+			if got != newtt.want {
 				t.Errorf("GetMessageFromError() = %v, want %v", got, newtt.want)
 			}
 		})

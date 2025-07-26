@@ -66,6 +66,7 @@ func TestGetVolumeReplicaClass(t *testing.T) {
 
 		if tc.errorExpected {
 			require.Error(t, err)
+
 			if tc.isErrorNotFound {
 				require.True(t, errors.IsNotFound(err))
 			}

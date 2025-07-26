@@ -129,11 +129,13 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	// get secret
 	secretName := vrcObj.Spec.Parameters[prefixedReplicationSecretNameKey]
 	secretNamespace := vrcObj.Spec.Parameters[prefixedReplicationSecretNamespaceKey]
+
 	secret := make(map[string]string)
 	if secretName != "" && secretNamespace != "" {
 		secret, err = r.getSecret(ctx, logger, secretName, secretNamespace)
 		if err != nil {
 			setFailureCondition(instance)
+
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), err.Error())
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -162,6 +164,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if pvErr != nil {
 			logger.Error(pvErr, "failed to get PVC", "PVCName", instance.Spec.DataSource.Name)
 			setFailureCondition(instance)
+
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getCurrentReplicationState(instance), pvErr.Error())
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -247,6 +250,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 					return reconcile.Result{}, err
 				}
 			}
+
 			if vg != nil {
 				err = r.removeFinalizerFromVG(ctx, logger, vg)
 				if err != nil {
@@ -294,7 +298,9 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	var replicationErr error
+
 	var requeueForResync bool
+
 
 	switch instance.Spec.ReplicationState {
 	case replicationv1alpha1.Primary:
@@ -408,6 +414,7 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 
 		return err
 	}
+
 	r.Scheme.AddKnownTypes(volumegroupv1.GroupVersion,
 		&volumegroupv1.VolumeGroup{},
 		&volumegroupv1.VolumeGroupContent{},
@@ -425,12 +432,14 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 
 		return err
 	}
+
 	err = gClient.Probe()
 	if err != nil {
 		r.Log.Error(err, "failed to connect to driver", "Endpoint", cfg.DriverEndpoint, "GRPC Timeout", cfg.RPCTimeout)
 
 		return err
 	}
+
 	r.GRPCClient = gClient
 	r.Replication = grpcClient.NewReplicationClient(r.GRPCClient.Client, cfg.RPCTimeout)
 
@@ -498,6 +507,7 @@ func (r *VolumeReplicationReconciler) waitForVolumeReplicationResource(logger lo
 
 			return err
 		}
+
 		logger.Info("resource does not exist", "Resource", resourceName)
 		time.Sleep(5 * time.Second)
 	}
@@ -532,6 +542,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 		} else {
 			// force promotion
 			logger.Info("force promoting volume due to known grpc error", "error", resp.Error)
+
 			volumeReplication.Force = true
 			resp := volumeReplication.Promote()
 			if resp.Error != nil {
