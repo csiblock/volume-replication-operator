@@ -50,7 +50,7 @@ func New(address string, timeout time.Duration) (*Client, error) {
 	client.Client = conn
 	client.Timeout = timeout
 
-	return c, nil
+	return client, nil
 }
 
 // Probe the GRPC client once.
