@@ -23,7 +23,7 @@ import (
 	"github.com/csi-addons/volume-replication-operator/pkg/client/fake"
 
 	replicationlib "github.com/csi-addons/spec/lib/go/replication"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEnableVolumeReplication(t *testing.T) {
@@ -35,8 +35,8 @@ func TestEnableVolumeReplication(t *testing.T) {
 	}
 	client := mockedEnableReplication
 	resp, err := client.EnableVolumeReplication("", "", nil, nil)
-	assert.Equal(t, &replicationlib.EnableVolumeReplicationResponse{}, resp)
-	assert.Nil(t, err)
+	require.Equal(t, &replicationlib.EnableVolumeReplicationResponse{}, resp)
+	require.Nil(t, err)
 
 	// return error
 	mockedEnableReplication = &fake.ReplicationClient{
@@ -46,8 +46,8 @@ func TestEnableVolumeReplication(t *testing.T) {
 	}
 	client = mockedEnableReplication
 	resp, err = client.EnableVolumeReplication("", "", nil, nil)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, err)
 }
 
 func TestDisableVolumeReplication(t *testing.T) {
@@ -59,8 +59,8 @@ func TestDisableVolumeReplication(t *testing.T) {
 	}
 	client := mockedDisableReplication
 	resp, err := client.DisableVolumeReplication("", "", nil, nil)
-	assert.Equal(t, &replicationlib.DisableVolumeReplicationResponse{}, resp)
-	assert.Nil(t, err)
+	require.Equal(t, &replicationlib.DisableVolumeReplicationResponse{}, resp)
+	require.Nil(t, err)
 
 	// return error
 	mockedDisableReplication = &fake.ReplicationClient{
@@ -70,8 +70,8 @@ func TestDisableVolumeReplication(t *testing.T) {
 	}
 	client = mockedDisableReplication
 	resp, err = client.DisableVolumeReplication("", "", nil, nil)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, err)
 }
 
 func TestPromoteVolume(t *testing.T) {
@@ -85,8 +85,8 @@ func TestPromoteVolume(t *testing.T) {
 	force := false
 	client := mockedPromoteVolume
 	resp, err := client.PromoteVolume("", "", force, nil, nil)
-	assert.Equal(t, &replicationlib.PromoteVolumeResponse{}, resp)
-	assert.Nil(t, err)
+	require.Equal(t, &replicationlib.PromoteVolumeResponse{}, resp)
+	require.Nil(t, err)
 
 	// return error
 	mockedPromoteVolume = &fake.ReplicationClient{
@@ -96,8 +96,8 @@ func TestPromoteVolume(t *testing.T) {
 	}
 	client = mockedPromoteVolume
 	resp, err = client.PromoteVolume("", "", force, nil, nil)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, err)
 }
 
 func TestDemoteVolume(t *testing.T) {
@@ -110,8 +110,8 @@ func TestDemoteVolume(t *testing.T) {
 	}
 	client := mockedDemoteVolume
 	resp, err := client.DemoteVolume("", "", nil, nil)
-	assert.Equal(t, &replicationlib.DemoteVolumeResponse{}, resp)
-	assert.Nil(t, err)
+	require.Equal(t, &replicationlib.DemoteVolumeResponse{}, resp)
+	require.Nil(t, err)
 
 	// return error
 	mockedDemoteVolume = &fake.ReplicationClient{
@@ -121,8 +121,8 @@ func TestDemoteVolume(t *testing.T) {
 	}
 	client = mockedDemoteVolume
 	resp, err = client.DemoteVolume("", "", nil, nil)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, err)
 }
 
 func TestResyncVolume(t *testing.T) {
@@ -135,8 +135,8 @@ func TestResyncVolume(t *testing.T) {
 	}
 	client := mockedResyncVolume
 	resp, err := client.ResyncVolume("", "", nil, nil)
-	assert.Equal(t, &replicationlib.ResyncVolumeResponse{}, resp)
-	assert.Nil(t, err)
+	require.Equal(t, &replicationlib.ResyncVolumeResponse{}, resp)
+	require.Nil(t, err)
 
 	// return error
 	mockedResyncVolume = &fake.ReplicationClient{
@@ -146,6 +146,6 @@ func TestResyncVolume(t *testing.T) {
 	}
 	client = mockedResyncVolume
 	resp, err = client.ResyncVolume("", "", nil, nil)
-	assert.Nil(t, resp)
-	assert.NotNil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, err)
 }

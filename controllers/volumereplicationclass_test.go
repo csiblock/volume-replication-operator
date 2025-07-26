@@ -22,7 +22,7 @@ import (
 
 	replicationv1alpha1 "github.com/csi-addons/volume-replication-operator/api/v1alpha1"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -65,13 +65,13 @@ func TestGetVolumeReplicaClass(t *testing.T) {
 		vrcObj, err := reconciler.getVolumeReplicationClass(context.TODO(), reconciler.Log, mockVolumeReplicationClassObj.Name)
 
 		if tc.errorExpected {
-			assert.Error(t, err)
+			require.Error(t, err)
 			if tc.isErrorNotFound {
-				assert.True(t, errors.IsNotFound(err))
+				require.True(t, errors.IsNotFound(err))
 			}
 		} else {
-			assert.NoError(t, err)
-			assert.NotEqual(t, nil, vrcObj)
+			require.NoError(t, err)
+			require.NotEqual(t, nil, vrcObj)
 		}
 	}
 }

@@ -23,7 +23,7 @@ import (
 	replicationv1alpha1 "github.com/csi-addons/volume-replication-operator/api/v1alpha1"
 	"github.com/csi-addons/volume-replication-operator/pkg/config"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -82,15 +82,15 @@ func createFakeScheme(t *testing.T) *runtime.Scheme {
 	t.Helper()
 	scheme, err := replicationv1alpha1.SchemeBuilder.Build()
 	if err != nil {
-		assert.Fail(t, "unable to build scheme")
+		require.Fail(t, "unable to build scheme")
 	}
 	err = corev1.AddToScheme(scheme)
 	if err != nil {
-		assert.Fail(t, "failed to add corev1 scheme")
+		require.Fail(t, "failed to add corev1 scheme")
 	}
 	err = replicationv1alpha1.AddToScheme(scheme)
 	if err != nil {
-		assert.Fail(t, "failed to add replicationv1alpha1 scheme")
+		require.Fail(t, "failed to add replicationv1alpha1 scheme")
 	}
 
 	return scheme
@@ -169,12 +169,12 @@ func TestGetVolumeHandle(t *testing.T) {
 		reconciler := createFakeVolumeReplicationReconciler(t, testPV, testPVC, volumeReplication)
 		resultPVC, resultPV, err := reconciler.getPVCDataSource(context.TODO(), reconciler.Log, namespacedName)
 		if tc.errorExpected {
-			assert.Error(t, err)
+			require.Error(t, err)
 		} else {
-			assert.NoError(t, err)
-			assert.NotEqual(t, nil, resultPVC)
-			assert.NotEqual(t, nil, resultPV)
-			assert.Equal(t, tc.expectedVolumeHandle, resultPV.Spec.CSI.VolumeHandle)
+			require.NoError(t, err)
+			require.NotEqual(t, nil, resultPVC)
+			require.NotEqual(t, nil, resultPV)
+			require.Equal(t, tc.expectedVolumeHandle, resultPV.Spec.CSI.VolumeHandle)
 		}
 	}
 }
