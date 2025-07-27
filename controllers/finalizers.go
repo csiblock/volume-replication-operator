@@ -40,6 +40,7 @@ func (r *VolumeReplicationReconciler) addFinalizerToVR(ctx context.Context, logg
 	if !contains(vr.Finalizers, volumeReplicationFinalizer) {
 		logger.Info("adding finalizer to volumeReplication object", "Finalizer", volumeReplicationFinalizer)
 		vr.Finalizers = append(vr.Finalizers, volumeReplicationFinalizer)
+
 		err := r.Update(ctx, vr)
 		if err != nil {
 			return fmt.Errorf("failed to add finalizer (%s) to VolumeReplication resource"+
@@ -56,6 +57,7 @@ func (r *VolumeReplicationReconciler) removeFinalizerFromVR(ctx context.Context,
 	if contains(vr.Finalizers, volumeReplicationFinalizer) {
 		logger.Info("removing finalizer from volumeReplication object", "Finalizer", volumeReplicationFinalizer)
 		vr.Finalizers = remove(vr.Finalizers, volumeReplicationFinalizer)
+
 		err := r.Update(ctx, vr)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from VolumeReplication resource"+
@@ -89,6 +91,7 @@ func (r *VolumeReplicationReconciler) removeFinalizerFromPVC(ctx context.Context
 	if contains(pvc.Finalizers, pvcReplicationFinalizer) {
 		logger.Info("removing finalizer from PersistentVolumeClaim object", "Finalizer", pvcReplicationFinalizer)
 		pvc.Finalizers = remove(pvc.Finalizers, pvcReplicationFinalizer)
+		
 		err := r.Update(ctx, pvc)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from PersistentVolumeClaim resource"+
@@ -105,6 +108,7 @@ func (r *VolumeReplicationReconciler) addFinalizerToVG(ctx context.Context, logg
 	if !contains(vg.Finalizers, vgReplicationFinalizer) {
 		logger.Info("adding finalizer to VolumeGroup object", "Finalizer", vgReplicationFinalizer)
 		vg.Finalizers = append(vg.Finalizers, vgReplicationFinalizer)
+
 		err := r.Update(ctx, vg)
 		if err != nil {
 			return fmt.Errorf("failed to add finalizer (%s) to VolumeGroup resource"+
@@ -122,6 +126,7 @@ func (r *VolumeReplicationReconciler) removeFinalizerFromVG(ctx context.Context,
 	if contains(vg.Finalizers, vgReplicationFinalizer) {
 		logger.Info("removing finalizer from VolumeGroup object", "Finalizer", vgReplicationFinalizer)
 		vg.Finalizers = remove(vg.Finalizers, vgReplicationFinalizer)
+		
 		err := r.Update(ctx, vg)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from VolumeGroup resource"+

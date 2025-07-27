@@ -33,7 +33,7 @@ func (r VolumeReplicationReconciler) getPVCDataSource(ctx context.Context, logge
 	*corev1.PersistentVolumeClaim, *corev1.PersistentVolume, error,
 ) {
 	pvc := &corev1.PersistentVolumeClaim{}
-	err := r.Client.Get(ctx, req, pvc)
+	err := r.Get(ctx, req, pvc)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			logger.Error(err, "PVC not found", "PVC Name", req.Name)
@@ -49,7 +49,7 @@ func (r VolumeReplicationReconciler) getPVCDataSource(ctx context.Context, logge
 	// Get PV object for the PVC
 	pvName := pvc.Spec.VolumeName
 	pv := &corev1.PersistentVolume{}
-	err = r.Client.Get(ctx, types.NamespacedName{Name: pvName}, pv)
+	err = r.Get(ctx, types.NamespacedName{Name: pvName}, pv)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			logger.Error(err, "PV not found", "PV Name", pvName)

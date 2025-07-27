@@ -82,7 +82,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	// Fetch VolumeReplication instance
 	instance := &replicationv1alpha1.VolumeReplication{}
-	err := r.Client.Get(ctx, req.NamespacedName, instance)
+	err := r.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -280,7 +280,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	instance.Status.LastStartTime = getCurrentTime()
-	err = r.Client.Update(ctx, instance)
+	err = r.Update(ctx, instance)
 	if err != nil {
 		logger.Error(err, "failed to update status")
 
@@ -466,7 +466,7 @@ func (r *VolumeReplicationReconciler) updateReplicationStatus(
 	instance.Status.Message = message
 	instance.Status.ObservedGeneration = instance.Generation
 
-	err := r.Client.Status().Update(ctx, instance)
+	err := r.Status().Update(ctx, instance)
 	if err != nil {
 		logger.Error(err, "failed to update status")
 
@@ -505,7 +505,7 @@ func (r *VolumeReplicationReconciler) waitForVolumeReplicationResource(logger lo
 	})
 
 	for {
-		err := r.Client.List(context.TODO(), unstructuredResource)
+		err := r.List(context.TODO(), unstructuredResource)
 		if err == nil {
 			return nil
 		}
