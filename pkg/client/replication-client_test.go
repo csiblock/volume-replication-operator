@@ -46,7 +46,9 @@ func TestEnableVolumeReplication(t *testing.T) {
 			return nil, errors.New("failed to enable mirroring")
 		},
 	}
+
 	client = mockedEnableReplication
+
 	resp, err = client.EnableVolumeReplication("", "", nil, nil)
 	require.Nil(t, resp)
 	require.Error(t, err)
@@ -72,7 +74,9 @@ func TestDisableVolumeReplication(t *testing.T) {
 			return nil, errors.New("failed to disable mirroring")
 		},
 	}
+
 	client = mockedDisableReplication
+
 	resp, err = client.DisableVolumeReplication("", "", nil, nil)
 	require.Nil(t, resp)
 	require.Error(t, err)
@@ -98,7 +102,9 @@ func TestPromoteVolume(t *testing.T) {
 			return nil, errors.New("failed to promote volume")
 		},
 	}
+
 	client = mockedPromoteVolume
+
 	resp, err = client.PromoteVolume("", "", false, nil, nil)
 	require.Nil(t, resp)
 	require.Error(t, err)
@@ -124,7 +130,9 @@ func TestDemoteVolume(t *testing.T) {
 			return nil, errors.New("failed to demote volume")
 		},
 	}
+
 	client = mockedDemoteVolume
+
 	resp, err = client.DemoteVolume("", "", nil, nil)
 	require.Nil(t, resp)
 	require.Error(t, err)
@@ -150,7 +158,9 @@ func TestResyncVolume(t *testing.T) {
 			return nil, errors.New("failed to resync volume")
 		},
 	}
+
 	client = mockedResyncVolume
+
 	resp, err = client.ResyncVolume("", "", nil, nil)
 	require.Nil(t, resp)
 	require.Error(t, err)
