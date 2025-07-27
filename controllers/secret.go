@@ -29,6 +29,7 @@ import (
 func (r *VolumeReplicationReconciler) getSecret(ctx context.Context, logger logr.Logger, name, namespace string) (map[string]string, error) {
 	namespacedName := types.NamespacedName{Name: name, Namespace: namespace}
 	secret := &corev1.Secret{}
+
 	err := r.Get(ctx, namespacedName, secret)
 	if err != nil {
 		if apierrors.IsNotFound(err) {

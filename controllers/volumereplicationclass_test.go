@@ -63,6 +63,7 @@ func TestGetVolumeReplicaClass(t *testing.T) {
 		}
 
 		reconciler := createFakeVolumeReplicationReconciler(t, objects...)
+
 		vrcObj, err := reconciler.getVolumeReplicationClass(context.TODO(), reconciler.Log, mockVolumeReplicationClassObj.Name)
 
 		if tc.errorExpected {

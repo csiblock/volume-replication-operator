@@ -31,6 +31,7 @@ import (
 //nolint:gocritic
 func (r VolumeReplicationReconciler) getVolumeReplicationClass(ctx context.Context, logger logr.Logger, vrcName string) (*replicationv1alpha1.VolumeReplicationClass, error) {
 	vrcObj := &replicationv1alpha1.VolumeReplicationClass{}
+
 	err := r.Get(ctx, types.NamespacedName{Name: vrcName}, vrcObj)
 	if err != nil {
 		if errors.IsNotFound(err) {

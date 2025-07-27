@@ -74,6 +74,7 @@ var _ = ginkgo.BeforeSuite(func() {
 
 var _ = ginkgo.AfterSuite(func() {
 	ginkgo.By("tearing down the test environment")
+
 	err := testEnv.Stop()
 	gomega.Expect(err).NotTo(gomega.HaveOccurred())
 })

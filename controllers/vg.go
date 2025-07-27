@@ -32,6 +32,7 @@ func (r VolumeReplicationReconciler) getVGDataSource(ctx context.Context, logger
 	*volumegroupv1.VolumeGroup, *volumegroupv1.VolumeGroupContent, error,
 ) {
 	vg := &volumegroupv1.VolumeGroup{}
+
 	err := r.Get(ctx, req, vg)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -44,6 +45,7 @@ func (r VolumeReplicationReconciler) getVGDataSource(ctx context.Context, logger
 	vgc := &volumegroupv1.VolumeGroupContent{}
 	volumeGroupContentName := *vg.Spec.Source.VolumeGroupContentName
 	namespacedVGC := types.NamespacedName{Name: volumeGroupContentName, Namespace: vg.Namespace}
+
 	err = r.Get(ctx, namespacedVGC, vgc)
 	if err != nil {
 		if errors.IsNotFound(err) {
