@@ -37,10 +37,10 @@ const (
 // addFinalizerToVR adds the VR finalizer on the VolumeReplication instance.
 func (r *VolumeReplicationReconciler) addFinalizerToVR(ctx context.Context, logger logr.Logger, vr *replicationv1alpha1.VolumeReplication,
 ) error {
-	if !contains(vr.ObjectMeta.Finalizers, volumeReplicationFinalizer) {
+	if !contains(vr.Finalizers, volumeReplicationFinalizer) {
 		logger.Info("adding finalizer to volumeReplication object", "Finalizer", volumeReplicationFinalizer)
-		vr.ObjectMeta.Finalizers = append(vr.ObjectMeta.Finalizers, volumeReplicationFinalizer)
-		err := r.Client.Update(ctx, vr)
+		vr.Finalizers = append(vr.Finalizers, volumeReplicationFinalizer)
+		err := r.Update(ctx, vr)
 		if err != nil {
 			return fmt.Errorf("failed to add finalizer (%s) to VolumeReplication resource"+
 				" (%s/%s) %w",
@@ -53,10 +53,10 @@ func (r *VolumeReplicationReconciler) addFinalizerToVR(ctx context.Context, logg
 
 // removeFinalizerFromVR removes the VR finalizer from the VolumeReplication instance.
 func (r *VolumeReplicationReconciler) removeFinalizerFromVR(ctx context.Context, logger logr.Logger, vr *replicationv1alpha1.VolumeReplication) error {
-	if contains(vr.ObjectMeta.Finalizers, volumeReplicationFinalizer) {
+	if contains(vr.Finalizers, volumeReplicationFinalizer) {
 		logger.Info("removing finalizer from volumeReplication object", "Finalizer", volumeReplicationFinalizer)
-		vr.ObjectMeta.Finalizers = remove(vr.ObjectMeta.Finalizers, volumeReplicationFinalizer)
-		err := r.Client.Update(ctx, vr)
+		vr.Finalizers = remove(vr.Finalizers, volumeReplicationFinalizer)
+		err := r.Update(ctx, vr)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from VolumeReplication resource"+
 				" (%s/%s), %w",
@@ -69,10 +69,10 @@ func (r *VolumeReplicationReconciler) removeFinalizerFromVR(ctx context.Context,
 
 // addFinalizerToPVC adds the VR finalizer on the PersistentVolumeClaim.
 func (r *VolumeReplicationReconciler) addFinalizerToPVC(ctx context.Context, logger logr.Logger, pvc *corev1.PersistentVolumeClaim) error {
-	if !contains(pvc.ObjectMeta.Finalizers, pvcReplicationFinalizer) {
+	if !contains(pvc.Finalizers, pvcReplicationFinalizer) {
 		logger.Info("adding finalizer to PersistentVolumeClaim object", "Finalizer", pvcReplicationFinalizer)
-		pvc.ObjectMeta.Finalizers = append(pvc.ObjectMeta.Finalizers, pvcReplicationFinalizer)
-		err := r.Client.Update(ctx, pvc)
+		pvc.Finalizers = append(pvc.Finalizers, pvcReplicationFinalizer)
+		err := r.Update(ctx, pvc)
 		if err != nil {
 			return fmt.Errorf("failed to add finalizer (%s) to PersistentVolumeClaim resource"+
 				" (%s/%s) %w",
@@ -86,10 +86,10 @@ func (r *VolumeReplicationReconciler) addFinalizerToPVC(ctx context.Context, log
 // removeFinalizerFromPVC removes the VR finalizer on PersistentVolumeClaim.
 func (r *VolumeReplicationReconciler) removeFinalizerFromPVC(ctx context.Context, logger logr.Logger, pvc *corev1.PersistentVolumeClaim,
 ) error {
-	if contains(pvc.ObjectMeta.Finalizers, pvcReplicationFinalizer) {
+	if contains(pvc.Finalizers, pvcReplicationFinalizer) {
 		logger.Info("removing finalizer from PersistentVolumeClaim object", "Finalizer", pvcReplicationFinalizer)
-		pvc.ObjectMeta.Finalizers = remove(pvc.ObjectMeta.Finalizers, pvcReplicationFinalizer)
-		err := r.Client.Update(ctx, pvc)
+		pvc.Finalizers = remove(pvc.Finalizers, pvcReplicationFinalizer)
+		err := r.Update(ctx, pvc)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from PersistentVolumeClaim resource"+
 				" (%s/%s), %w",
@@ -102,10 +102,10 @@ func (r *VolumeReplicationReconciler) removeFinalizerFromPVC(ctx context.Context
 
 // addFinalizerToVG adds the VR finalizer on the VolumeGroup.
 func (r *VolumeReplicationReconciler) addFinalizerToVG(ctx context.Context, logger logr.Logger, vg *volumegroupv1.VolumeGroup) error {
-	if !contains(vg.ObjectMeta.Finalizers, vgReplicationFinalizer) {
+	if !contains(vg.Finalizers, vgReplicationFinalizer) {
 		logger.Info("adding finalizer to VolumeGroup object", "Finalizer", vgReplicationFinalizer)
-		vg.ObjectMeta.Finalizers = append(vg.ObjectMeta.Finalizers, vgReplicationFinalizer)
-		err := r.Client.Update(ctx, vg)
+		vg.Finalizers = append(vg.Finalizers, vgReplicationFinalizer)
+		err := r.Update(ctx, vg)
 		if err != nil {
 			return fmt.Errorf("failed to add finalizer (%s) to VolumeGroup resource"+
 				" (%s/%s) %w",
@@ -119,10 +119,10 @@ func (r *VolumeReplicationReconciler) addFinalizerToVG(ctx context.Context, logg
 // removeFinalizerFromVG removes the VR finalizer on VolumeGroup.
 func (r *VolumeReplicationReconciler) removeFinalizerFromVG(ctx context.Context, logger logr.Logger, vg *volumegroupv1.VolumeGroup,
 ) error {
-	if contains(vg.ObjectMeta.Finalizers, vgReplicationFinalizer) {
+	if contains(vg.Finalizers, vgReplicationFinalizer) {
 		logger.Info("removing finalizer from VolumeGroup object", "Finalizer", vgReplicationFinalizer)
-		vg.ObjectMeta.Finalizers = remove(vg.ObjectMeta.Finalizers, vgReplicationFinalizer)
-		err := r.Client.Update(ctx, vg)
+		vg.Finalizers = remove(vg.Finalizers, vgReplicationFinalizer)
+		err := r.Update(ctx, vg)
 		if err != nil {
 			return fmt.Errorf("failed to remove finalizer (%s) from VolumeGroup resource"+
 				" (%s/%s), %w",
