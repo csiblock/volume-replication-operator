@@ -7,7 +7,7 @@ toolchain go1.24.1
 require (
 	github.com/IBM/csi-volume-group-operator v0.9.2
 	github.com/csi-addons/spec v0.2.0
-	github.com/go-logr/logr v1.4.2
+	github.com/go-logr/logr v1.4.3
 	github.com/kubernetes-csi/csi-lib-utils v0.21.0
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.38.0
