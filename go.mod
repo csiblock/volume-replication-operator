@@ -5,7 +5,7 @@ go 1.24.0
 toolchain go1.24.1
 
 require (
-	github.com/IBM/csi-volume-group-operator v0.9.2
+	github.com/IBM/csi-volume-group-operator v0.9.3
 	github.com/csi-addons/spec v0.2.0
 	github.com/go-logr/logr v1.4.3
 	github.com/kubernetes-csi/csi-lib-utils v0.22.0
