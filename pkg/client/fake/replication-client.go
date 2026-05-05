@@ -32,6 +32,9 @@ type ReplicationClient struct {
 	DemoteVolumeMock func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.DemoteVolumeResponse, error)
 	// ResyncVolumeMock mocks ResyncVolume RPC call.
 	ResyncVolumeMock func(volumeID, replicationID string, secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error)
+	// GetVolumeReplicationInfoMock mocks GetVolumeReplicationInfo RPC call.
+	GetVolumeReplicationInfoMock func(replicationSource *replicationlib.ReplicationSource, replicationID string,
+		secrets map[string]string) (*replicationlib.GetVolumeReplicationInfoResponse, error)
 }
 
 // EnableVolumeReplication calls EnableVolumeReplicationMock mock function.
@@ -93,4 +96,15 @@ func (rc *ReplicationClient) ResyncVolume(
 	error,
 ) {
 	return rc.ResyncVolumeMock(volumeID, replicationID, secrets, parameters)
+}
+
+// GetVolumeReplicationInfo calls GetVolumeReplicationInfoMock function.
+func (rc *ReplicationClient) GetVolumeReplicationInfo(
+	replicationSource *replicationlib.ReplicationSource,
+	replicationID string,
+	secrets map[string]string) (
+	*replicationlib.GetVolumeReplicationInfoResponse,
+	error,
+) {
+	return rc.GetVolumeReplicationInfoMock(replicationSource, replicationID, secrets)
 }
