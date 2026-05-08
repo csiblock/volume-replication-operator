@@ -6,7 +6,7 @@ toolchain go1.24.1
 
 require (
 	github.com/IBM/csi-volume-group-operator v0.9.4
-	github.com/csi-addons/spec v0.2.0
+	github.com/csi-addons/spec v0.2.1-0.20250610152019-b5a7205f6a79
 	github.com/go-logr/logr v1.4.3
 	github.com/kubernetes-csi/csi-lib-utils v0.22.0
 	github.com/onsi/ginkgo/v2 v2.23.4
@@ -87,5 +87,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/yaml v1.4.0 // indirect
 )
-
-replace github.com/csi-addons/spec => github.com/Madhu-1/spec-1 v0.0.0-20240619083137-fb39bcd0d4d7
