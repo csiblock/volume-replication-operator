@@ -1,7 +1,5 @@
 github.com/IBM/csi-volume-group-operator v0.9.4 h1:rY/CPsf9LgFrLZVrAuCOyckZqHGxc0Rir4MF08DuI4s=
 github.com/IBM/csi-volume-group-operator v0.9.4/go.mod h1:L5fDPHFjcYLE7ziBjYTVlSTAp7YUYoMWHM5uxsNLjwI=
-github.com/Madhu-1/spec-1 v0.0.0-20240619083137-fb39bcd0d4d7 h1:uQVaeRNIiYnIudNenzG3t/bY+YM6viYkln5Ho9J/5Aw=
-github.com/Madhu-1/spec-1 v0.0.0-20240619083137-fb39bcd0d4d7/go.mod h1:OvFflvtbcPmJ4porjPcEcZPohm2S/XyVGyQa+2ej244=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=
@@ -10,6 +8,8 @@ github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UF
 github.com/cespare/xxhash/v2 v2.3.0/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/container-storage-interface/spec v1.12.0 h1:zrFOEqpR5AghNaaDG4qyedwPBqU2fU0dWjLQMP/azK0=
 github.com/container-storage-interface/spec v1.12.0/go.mod h1:txsm+MA2B2WDa5kW69jNbqPnvTtfvZma7T/zsAZ9qX8=
+github.com/csi-addons/spec v0.2.1-0.20250610152019-b5a7205f6a79 h1:ditFTa+wl7DLanGQHSS/AwuITGuWeBXyl7syPO4n+4s=
+github.com/csi-addons/spec v0.2.1-0.20250610152019-b5a7205f6a79/go.mod h1:Mwq4iLiUV4s+K1bszcWU6aMsR5KPsbIYzzszJ6+56vI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
