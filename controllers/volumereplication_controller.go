@@ -50,11 +50,13 @@ const (
 	volumeGroupDataSource  = "VolumeGroup"
 	volumeReplicationClass = "VolumeReplicationClass"
 	volumeReplication      = "VolumeReplication"
+	defaultScheduleTime    = time.Hour
 )
 
 var (
 	volumePromotionKnownErrors    = []codes.Code{codes.FailedPrecondition}
 	disableReplicationKnownErrors = []codes.Code{codes.NotFound}
+	getReplicationInfoKnownErrors = []codes.Code{codes.NotFound}
 )
 
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
@@ -404,7 +406,44 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	instance.Status.LastCompletionTime = getCurrentTime()
 
-	r.fetchAndSetReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
+	requeueForInfo := false
+
+	if instance.Spec.ReplicationState == replicationv1alpha1.Primary {
+		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
+		if infoErr != nil {
+			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
+			if uErr != nil {
+				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
+			}
+			return ctrl.Result{}, infoErr
+		}
+		if info != nil {
+			protoTimestamp := info.GetLastSyncTime()
+			if protoTimestamp != nil {
+				lastSyncTime := metav1.NewTime(protoTimestamp.AsTime())
+				instance.Status.LastSyncTime = &lastSyncTime
+			} else {
+				instance.Status.LastSyncTime = nil
+			}
+
+			protoDuration := info.GetLastSyncDuration()
+			if protoDuration != nil {
+				lastSyncDuration := metav1.Duration{Duration: protoDuration.AsDuration()}
+				instance.Status.LastSyncDuration = &lastSyncDuration
+			} else {
+				instance.Status.LastSyncDuration = nil
+			}
+
+			lastSyncBytes := info.GetLastSyncBytes()
+			if lastSyncBytes != 0 {
+				instance.Status.LastSyncBytes = &lastSyncBytes
+			} else {
+				instance.Status.LastSyncBytes = nil
+			}
+
+			requeueForInfo = true
+		}
+	}
 
 	err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
 	if err != nil {
@@ -412,6 +451,11 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	logger.Info(msg)
+
+	if requeueForInfo {
+		interval := getInfoReconcileInterval(parameters, logger)
+		return ctrl.Result{Requeue: true, RequeueAfter: interval}, nil
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -783,13 +827,13 @@ func getCurrentTime() *metav1.Time {
 	return &metav1NowTime
 }
 
-func (r *VolumeReplicationReconciler) fetchAndSetReplicationInfo(
+func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
 	instance *replicationv1alpha1.VolumeReplication,
 	logger logr.Logger,
 	replicationSource *replicationlib.ReplicationSource,
 	replicationID string,
 	secrets map[string]string,
-) {
+) (*replicationlib.GetVolumeReplicationInfoResponse, error) {
 	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
 		ReplicationID:     replicationID,
@@ -800,60 +844,37 @@ func (r *VolumeReplicationReconciler) fetchAndSetReplicationInfo(
 
 	vr := replication.Replication{Params: params}
 	resp := vr.GetInfo()
-
 	if resp.Error != nil {
-		logger.Info("fetchAndSetReplicationInfo: GetVolumeReplicationInfo failed, sync status "+
-			"fields will not be updated", "VRName", instance.Name, "error", resp.Error)
-		return
+		logger.Error(resp.Error, "failed to get volume replication info", "VRName", instance.Name)
+		if isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors); isKnownError {
+			logger.Info("volume replication info not found", "VRName", instance.Name)
+			return nil, nil
+		}
+		return nil, resp.Error
 	}
 
 	infoResp, ok := resp.Response.(*replicationlib.GetVolumeReplicationInfoResponse)
 	if !ok {
-		logger.Error(fmt.Errorf("unexpected response type"),
-			"fetchAndSetReplicationInfo: sync status fields will not be updated",
-			"VRName", instance.Name,
-			"responseType", fmt.Sprintf("%T", resp.Response))
-		return
+		err := fmt.Errorf("received response of unexpected type")
+		logger.Error(err, "unable to parse GetVolumeReplicationInfo response", "VRName", instance.Name)
+		return nil, err
 	}
+	return infoResp, nil
+}
 
-	// --- LastSyncTime ---
-	protoTs := infoResp.GetLastSyncTime()
-	if protoTs != nil {
-		if protoTs.GetSeconds() == 0 {
-			logger.Info("fetchAndSetReplicationInfo: LastSyncTime set to (1970-01-01T00:00:00Z) meaning storage"+
-				"returned blank data.", "VRName", instance.Name)
-		}
-		t := metav1.NewTime(protoTs.AsTime())
-		instance.Status.LastSyncTime = &t
-	} else {
-		instance.Status.LastSyncTime = nil
+func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) time.Duration {
+	rawScheduleTime := parameters["schedulingInterval"]
+	if rawScheduleTime == "" {
+		return defaultScheduleTime
 	}
-
-	// --- LastSyncDuration ---
-	protoDur := infoResp.GetLastSyncDuration()
-	if protoDur != nil {
-		durationSeconds := time.Duration(protoDur.GetSeconds()) * time.Second
-		d := metav1.Duration{Duration: durationSeconds}
-		instance.Status.LastSyncDuration = &d
-	} else {
-		instance.Status.LastSyncDuration = nil
+	scheduleTime, err := time.ParseDuration(rawScheduleTime)
+	if err != nil {
+		logger.Error(err, "failed to parse schedulingInterval, using default", "value", rawScheduleTime)
+		return defaultScheduleTime
 	}
-
-	// --- LastSyncBytes ---
-	rawBytes := infoResp.GetLastSyncBytes()
-	if rawBytes != 0 {
-		if rawBytes == -1 {
-			logger.Info("fetchAndSetReplicationInfo: LastSyncBytes set to -1 indicating storage returned blank data",
-				"VRName", instance.Name)
-		}
-		instance.Status.LastSyncBytes = &rawBytes
-	} else {
-		instance.Status.LastSyncBytes = nil
+	if scheduleTime < 2*time.Minute {
+		logger.Info("schedulingInterval is less than 2 minutes, not halving it")
+		return scheduleTime
 	}
-
-	logger.Info("fetchAndSetReplicationInfo: completed",
-		"VRName", instance.Name,
-		"LastSyncTime", instance.Status.LastSyncTime,
-		"LastSyncDuration", instance.Status.LastSyncDuration,
-		"LastSyncBytes", instance.Status.LastSyncBytes)
+	return scheduleTime / 2
 }
