@@ -54,9 +54,10 @@ const (
 )
 
 var (
-	volumePromotionKnownErrors    = []codes.Code{codes.FailedPrecondition}
-	disableReplicationKnownErrors = []codes.Code{codes.NotFound}
-	getReplicationInfoKnownErrors = []codes.Code{codes.NotFound}
+	volumePromotionKnownErrors               = []codes.Code{codes.FailedPrecondition}
+	disableReplicationKnownErrors            = []codes.Code{codes.NotFound}
+	getReplicationInfoKnownErrors            = []codes.Code{codes.NotFound}
+	getReplicationDestinationInfoKnownErrors = []codes.Code{codes.NotFound, codes.Unimplemented}
 )
 
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
@@ -445,6 +446,41 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			instance.Status.StatusMessage = info.GetStatusMessage()
 
 			requeueForInfo = true
+		}
+	}
+
+	if !isDestinationInfoAvailable(instance.Status.Conditions) {
+		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
+		if destErr != nil {
+			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
+				instance.Spec.DataSource.Kind, destErr.Error())
+		} else if destInfo != nil {
+			replicationDest := destInfo.GetReplicationDestination()
+			if replicationDest != nil {
+				if volDest := replicationDest.GetVolume(); volDest != nil {
+					instance.Status.DestinationVolumeID = volDest.GetVolumeId()
+				}
+				if vgDest := replicationDest.GetVolumegroup(); vgDest != nil {
+					instance.Status.DestinationVolumeGroupID = vgDest.GetVolumeGroupId()
+
+					sourceToDestVolumeIDs := vgDest.GetVolumeIds()
+					if len(sourceToDestVolumeIDs) > 0 {
+						pvMappings := make([]replicationv1alpha1.PersistentVolumeMapping, 0, len(sourceToDestVolumeIDs))
+						for sourceVolumeHandle, destinationVolumeHandle := range sourceToDestVolumeIDs {
+							pvMappings = append(pvMappings, replicationv1alpha1.PersistentVolumeMapping{
+								VolumeHandle:            sourceVolumeHandle,
+								DestinationVolumeHandle: destinationVolumeHandle,
+							})
+						}
+						instance.Status.PersistentVolumeMappingList = pvMappings
+					}
+				}
+				setDestinationInfoAvailableCondition(&instance.Status.Conditions, instance.Generation,
+					instance.Spec.DataSource.Kind)
+			} else {
+				setDestinationInfoPendingCondition(&instance.Status.Conditions, instance.Generation,
+					instance.Spec.DataSource.Kind)
+			}
 		}
 	}
 
@@ -863,6 +899,42 @@ func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
 		return nil, err
 	}
 	return infoResp, nil
+}
+
+func (r *VolumeReplicationReconciler) getReplicationDestinationInfo(
+	instance *replicationv1alpha1.VolumeReplication,
+	logger logr.Logger,
+	replicationSource *replicationlib.ReplicationSource,
+	secrets map[string]string,
+) (*replicationlib.GetReplicationDestinationInfoResponse, error) {
+	params := replication.CommonRequestParameters{
+		ReplicationSource: replicationSource,
+		Secrets:           secrets,
+		Replication:       r.Replication,
+		Parameters:        map[string]string{},
+	}
+
+	vr := replication.Replication{Params: params}
+	resp := vr.GetDestinationInfo()
+
+	if resp.Error != nil {
+		logger.Error(resp.Error, "failed to get replication destination info", "VRName", instance.Name)
+		if isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors); isKnownError {
+			logger.Info("replication destination info not found or not implemented, skipping",
+				"VRName", instance.Name)
+			return nil, nil
+		}
+		return nil, resp.Error
+	}
+
+	destResp, ok := resp.Response.(*replicationlib.GetReplicationDestinationInfoResponse)
+
+	if !ok {
+		err := fmt.Errorf("received response of unexpected type")
+		logger.Error(err, "unable to parse GetReplicationDestinationInfo response", "VRName", instance.Name)
+		return nil, err
+	}
+	return destResp, nil
 }
 
 func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) time.Duration {

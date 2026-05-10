@@ -166,6 +166,10 @@ spec:
                   - type
                   type: object
                 type: array
+              destinationVolumeGroupID:
+                type: string
+              destinationVolumeID:
+                type: string
               lastCompletionTime:
                 format: date-time
                 type: string

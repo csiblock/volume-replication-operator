@@ -74,6 +74,20 @@ type VolumeReplicationSpec struct {
 	ReplicationHandle string `json:"replicationHandle"`
 }
 
+// PersistentVolumeMapping contains the source and destination volume handles
+// for a single PV in a VolumeGroup replication relationship.
+type PersistentVolumeMapping struct {
+	// VolumeHandle is the CSI volume handle on the source/primary cluster.
+	// This field is REQUIRED.
+	VolumeHandle string `json:"volumeHandle"`
+
+	// DestinationVolumeHandle is the CSI volume handle on the
+	// destination/target cluster, as reported by the SP.
+	// This field is empty when destination info is not available.
+	// +optional
+	DestinationVolumeHandle string `json:"destinationVolumeHandle,omitempty"`
+}
+
 // VolumeReplicationStatus defines the observed state of VolumeReplication.
 type VolumeReplicationStatus struct {
 	State   State  `json:"state,omitempty"`
