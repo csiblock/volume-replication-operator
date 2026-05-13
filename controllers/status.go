@@ -49,18 +49,21 @@ func setPromotedCondition(conditions *[]metav1.Condition, observedGeneration int
 		Reason:             Promoted,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume is marked primary",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             Healthy,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is healthy",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is not resyncing",
 	})
 }
 
@@ -71,18 +74,21 @@ func setFailedPromotionCondition(conditions *[]metav1.Condition, observedGenerat
 		Reason:             FailedToPromote,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "failed to promote volume",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             Error,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume promotion failed",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is not resyncing",
 	})
 }
 
@@ -93,12 +99,14 @@ func setNotDegradedCondition(conditions *[]metav1.Condition, observedGeneration 
 		Reason:             Healthy,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is healthy",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is not resyncing",
 	})
 }
 
@@ -109,18 +117,21 @@ func setDemotedCondition(conditions *[]metav1.Condition, observedGeneration int6
 		Reason:             Demoted,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume is marked secondary",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             VolumeDegraded,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume is degraded",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is not resyncing",
 	})
 }
 
@@ -131,18 +142,21 @@ func setFailedDemotionCondition(conditions *[]metav1.Condition, observedGenerati
 		Reason:             FailedToDemote,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "failed to demote volume",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             Error,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume demotion failed",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             NotResyncing,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume is not resyncing",
 	})
 }
 
@@ -153,18 +167,21 @@ func setResyncCondition(conditions *[]metav1.Condition, observedGeneration int64
 		Reason:             Demoted,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume is marked secondary",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             VolumeDegraded,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume is degraded",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             ResyncTriggered,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume resync is triggered",
 	})
 }
 
@@ -175,18 +192,21 @@ func setFailedResyncCondition(conditions *[]metav1.Condition, observedGeneration
 		Reason:             FailedToResync,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "failed to resync volume",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionDegraded,
 		Reason:             Error,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionTrue,
+		Message:            "volume resync failed",
 	})
 	setStatusCondition(conditions, &metav1.Condition{
 		Type:               ConditionResyncing,
 		Reason:             FailedToResync,
 		ObservedGeneration: observedGeneration,
 		Status:             metav1.ConditionFalse,
+		Message:            "volume resync failed",
 	})
 }
 
@@ -210,6 +230,7 @@ func setStatusCondition(existingConditions *[]metav1.Condition, newCondition *me
 
 	existingCondition.Reason = newCondition.Reason
 	existingCondition.ObservedGeneration = newCondition.ObservedGeneration
+	existingCondition.Message = newCondition.Message
 }
 
 func findCondition(existingConditions []metav1.Condition, conditionType string) *metav1.Condition {

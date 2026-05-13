@@ -404,6 +404,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	instance.Status.LastCompletionTime = getCurrentTime()
 
+	r.fetchAndSetReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
+
 	err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -779,4 +781,79 @@ func getCurrentTime() *metav1.Time {
 	metav1NowTime := metav1.NewTime(time.Now())
 
 	return &metav1NowTime
+}
+
+func (r *VolumeReplicationReconciler) fetchAndSetReplicationInfo(
+	instance *replicationv1alpha1.VolumeReplication,
+	logger logr.Logger,
+	replicationSource *replicationlib.ReplicationSource,
+	replicationID string,
+	secrets map[string]string,
+) {
+	params := replication.CommonRequestParameters{
+		ReplicationSource: replicationSource,
+		ReplicationID:     replicationID,
+		Secrets:           secrets,
+		Replication:       r.Replication,
+		Parameters:        map[string]string{},
+	}
+
+	vr := replication.Replication{Params: params}
+	resp := vr.GetInfo()
+
+	if resp.Error != nil {
+		logger.Info("fetchAndSetReplicationInfo: GetVolumeReplicationInfo failed, sync status "+
+			"fields will not be updated", "VRName", instance.Name, "error", resp.Error)
+		return
+	}
+
+	infoResp, ok := resp.Response.(*replicationlib.GetVolumeReplicationInfoResponse)
+	if !ok {
+		logger.Error(fmt.Errorf("unexpected response type"),
+			"fetchAndSetReplicationInfo: sync status fields will not be updated",
+			"VRName", instance.Name,
+			"responseType", fmt.Sprintf("%T", resp.Response))
+		return
+	}
+
+	// --- LastSyncTime ---
+	protoTs := infoResp.GetLastSyncTime()
+	if protoTs != nil {
+		if protoTs.GetSeconds() == 0 {
+			logger.Info("fetchAndSetReplicationInfo: LastSyncTime set to (1970-01-01T00:00:00Z) meaning storage"+
+				"returned blank data.", "VRName", instance.Name)
+		}
+		t := metav1.NewTime(protoTs.AsTime())
+		instance.Status.LastSyncTime = &t
+	} else {
+		instance.Status.LastSyncTime = nil
+	}
+
+	// --- LastSyncDuration ---
+	protoDur := infoResp.GetLastSyncDuration()
+	if protoDur != nil {
+		durationSeconds := time.Duration(protoDur.GetSeconds()) * time.Second
+		d := metav1.Duration{Duration: durationSeconds}
+		instance.Status.LastSyncDuration = &d
+	} else {
+		instance.Status.LastSyncDuration = nil
+	}
+
+	// --- LastSyncBytes ---
+	rawBytes := infoResp.GetLastSyncBytes()
+	if rawBytes != 0 {
+		if rawBytes == -1 {
+			logger.Info("fetchAndSetReplicationInfo: LastSyncBytes set to -1 indicating storage returned blank data",
+				"VRName", instance.Name)
+		}
+		instance.Status.LastSyncBytes = &rawBytes
+	} else {
+		instance.Status.LastSyncBytes = nil
+	}
+
+	logger.Info("fetchAndSetReplicationInfo: completed",
+		"VRName", instance.Name,
+		"LastSyncTime", instance.Status.LastSyncTime,
+		"LastSyncDuration", instance.Status.LastSyncDuration,
+		"LastSyncBytes", instance.Status.LastSyncBytes)
 }
