@@ -88,6 +88,8 @@ type VolumeReplicationStatus struct {
 	LastSyncTime       *metav1.Time     `json:"lastSyncTime,omitempty"`
 	LastSyncBytes      *int64           `json:"lastSyncBytes,omitempty"`
 	LastSyncDuration   *metav1.Duration `json:"lastSyncDuration,omitempty"`
+	ReplicationStatus  string           `json:"replicationStatus,omitempty"`
+	StatusMessage      string           `json:"statusMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true
