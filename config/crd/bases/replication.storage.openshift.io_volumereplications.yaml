@@ -187,8 +187,12 @@ spec:
                   operator has dealt with
                 format: int64
                 type: integer
+              replicationStatus:
+                type: string
               state:
                 description: State captures the latest state of the replication operation.
+                type: string
+              statusMessage:
                 type: string
             type: object
         type: object
