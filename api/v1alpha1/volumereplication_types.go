@@ -50,6 +50,17 @@ const (
 	UnknownState State = "Unknown"
 )
 
+// ReplicationStatusType represents the replication status reported by the storage backend.
+// +kubebuilder:validation:Enum=Healthy;Degraded;Error;Unknown
+type ReplicationStatusType string
+
+const (
+	HealthyReplicationStatus  ReplicationStatusType = "Healthy"
+	DegradedReplicationStatus ReplicationStatusType = "Degraded"
+	ErrorReplicationStatus    ReplicationStatusType = "Error"
+	UnknownReplicationStatus  ReplicationStatusType = "Unknown"
+)
+
 // VolumeReplicationSpec defines the desired state of VolumeReplication.
 type VolumeReplicationSpec struct {
 	// VolumeReplicationClass is the VolumeReplicationClass name for this VolumeReplication resource
@@ -82,14 +93,14 @@ type VolumeReplicationStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 	// observedGeneration is the last generation change the operator has dealt with
 	// +optional
-	ObservedGeneration int64            `json:"observedGeneration,omitempty"`
-	LastStartTime      *metav1.Time     `json:"lastStartTime,omitempty"`
-	LastCompletionTime *metav1.Time     `json:"lastCompletionTime,omitempty"`
-	LastSyncTime       *metav1.Time     `json:"lastSyncTime,omitempty"`
-	LastSyncBytes      *int64           `json:"lastSyncBytes,omitempty"`
-	LastSyncDuration   *metav1.Duration `json:"lastSyncDuration,omitempty"`
-	ReplicationStatus  string           `json:"replicationStatus,omitempty"`
-	StatusMessage      string           `json:"statusMessage,omitempty"`
+	ObservedGeneration int64                 `json:"observedGeneration,omitempty"`
+	LastStartTime      *metav1.Time          `json:"lastStartTime,omitempty"`
+	LastCompletionTime *metav1.Time          `json:"lastCompletionTime,omitempty"`
+	LastSyncTime       *metav1.Time          `json:"lastSyncTime,omitempty"`
+	LastSyncBytes      *int64                `json:"lastSyncBytes,omitempty"`
+	LastSyncDuration   *metav1.Duration      `json:"lastSyncDuration,omitempty"`
+	ReplicationStatus  ReplicationStatusType `json:"replicationStatus,omitempty"`
+	StatusMessage      string                `json:"statusMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true

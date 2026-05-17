@@ -188,6 +188,13 @@ spec:
                 format: int64
                 type: integer
               replicationStatus:
+                description: ReplicationStatusType represents the replication status
+                  reported by the storage backend.
+                enum:
+                - Healthy
+                - Degraded
+                - Error
+                - Unknown
                 type: string
               state:
                 description: State captures the latest state of the replication operation.

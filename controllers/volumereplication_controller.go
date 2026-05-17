@@ -441,7 +441,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				instance.Status.LastSyncBytes = nil
 			}
 
-			instance.Status.ReplicationStatus = protoReplicationStatusToString(info.GetStatus())
+			instance.Status.ReplicationStatus = protoReplicationStatusToType(info.GetStatus())
 			instance.Status.StatusMessage = info.GetStatusMessage()
 
 			requeueForInfo = true
@@ -882,15 +882,15 @@ func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) 
 	return scheduleTime / 2
 }
 
-func protoReplicationStatusToString(status replicationlib.GetVolumeReplicationInfoResponse_Status) string {
+func protoReplicationStatusToType(status replicationlib.GetVolumeReplicationInfoResponse_Status) replicationv1alpha1.ReplicationStatusType {
 	switch status {
 	case replicationlib.GetVolumeReplicationInfoResponse_HEALTHY:
-		return "Healthy"
+		return replicationv1alpha1.HealthyReplicationStatus
 	case replicationlib.GetVolumeReplicationInfoResponse_DEGRADED:
-		return "Degraded"
+		return replicationv1alpha1.DegradedReplicationStatus
 	case replicationlib.GetVolumeReplicationInfoResponse_ERROR:
-		return "Error"
+		return replicationv1alpha1.ErrorReplicationStatus
 	default:
-		return "Unknown"
+		return replicationv1alpha1.UnknownReplicationStatus
 	}
 }
