@@ -74,20 +74,6 @@ type VolumeReplicationSpec struct {
 	ReplicationHandle string `json:"replicationHandle"`
 }
 
-// PersistentVolumeMapping contains the source and destination volume handles
-// for a single PV in a VolumeGroup replication relationship.
-type PersistentVolumeMapping struct {
-	// VolumeHandle is the CSI volume handle on the source/primary cluster.
-	// This field is REQUIRED.
-	VolumeHandle string `json:"volumeHandle"`
-
-	// DestinationVolumeHandle is the CSI volume handle on the
-	// destination/target cluster, as reported by the SP.
-	// This field is empty when destination info is not available.
-	// +optional
-	DestinationVolumeHandle string `json:"destinationVolumeHandle,omitempty"`
-}
-
 // VolumeReplicationStatus defines the observed state of VolumeReplication.
 type VolumeReplicationStatus struct {
 	State   State  `json:"state,omitempty"`
@@ -96,14 +82,15 @@ type VolumeReplicationStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 	// observedGeneration is the last generation change the operator has dealt with
 	// +optional
-	ObservedGeneration int64            `json:"observedGeneration,omitempty"`
-	LastStartTime      *metav1.Time     `json:"lastStartTime,omitempty"`
-	LastCompletionTime *metav1.Time     `json:"lastCompletionTime,omitempty"`
-	LastSyncTime       *metav1.Time     `json:"lastSyncTime,omitempty"`
-	LastSyncBytes      *int64           `json:"lastSyncBytes,omitempty"`
-	LastSyncDuration   *metav1.Duration `json:"lastSyncDuration,omitempty"`
-	ReplicationStatus  string           `json:"replicationStatus,omitempty"`
-	StatusMessage      string           `json:"statusMessage,omitempty"`
+	ObservedGeneration  int64            `json:"observedGeneration,omitempty"`
+	LastStartTime       *metav1.Time     `json:"lastStartTime,omitempty"`
+	LastCompletionTime  *metav1.Time     `json:"lastCompletionTime,omitempty"`
+	LastSyncTime        *metav1.Time     `json:"lastSyncTime,omitempty"`
+	LastSyncBytes       *int64           `json:"lastSyncBytes,omitempty"`
+	LastSyncDuration    *metav1.Duration `json:"lastSyncDuration,omitempty"`
+	DestinationVolumeID string           `json:"destinationVolumeID,omitempty"`
+	ReplicationStatus   string           `json:"replicationStatus,omitempty"`
+	StatusMessage       string           `json:"statusMessage,omitempty"`
 }
 
 // +kubebuilder:object:root=true

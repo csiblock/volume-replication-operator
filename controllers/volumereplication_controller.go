@@ -31,6 +31,7 @@ import (
 	replicationlib "github.com/csi-addons/spec/lib/go/replication"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -58,6 +59,7 @@ var (
 	disableReplicationKnownErrors            = []codes.Code{codes.NotFound}
 	getReplicationInfoKnownErrors            = []codes.Code{codes.NotFound}
 	getReplicationDestinationInfoKnownErrors = []codes.Code{codes.NotFound, codes.Unimplemented}
+	promoteRemoteNotReadyErrors              = []codes.Code{codes.Internal}
 )
 
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
@@ -370,6 +372,18 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Error(err, "failed to update volumeReplication status", "VRName", instance.Name)
 		}
 
+		if grpcStatus, ok := grpcstatus.FromError(replicationErr); ok &&
+			instance.Spec.ReplicationState == replicationv1alpha1.Primary {
+			for _, code := range promoteRemoteNotReadyErrors {
+				if grpcStatus.Code() == code {
+					logger.Info("secondary storage not ready for promotion, requeuing",
+						"VRName", instance.Name,
+						"RequeueAfter", "5s")
+					return ctrl.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
+				}
+			}
+		}
+
 		if instance.Status.State == replicationv1alpha1.SecondaryState {
 			return ctrl.Result{
 				Requeue: true,
@@ -449,7 +463,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	}
 
-	if !isDestinationInfoAvailable(instance.Status.Conditions) {
+	if instance.Spec.DataSource.Kind == pvcDataSource && parameters["replication_policy"] != "" {
 		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
 		if destErr != nil {
 			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
@@ -460,26 +474,19 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				if volDest := replicationDest.GetVolume(); volDest != nil {
 					instance.Status.DestinationVolumeID = volDest.GetVolumeId()
 				}
-				if vgDest := replicationDest.GetVolumegroup(); vgDest != nil {
-					instance.Status.DestinationVolumeGroupID = vgDest.GetVolumeGroupId()
-
-					sourceToDestVolumeIDs := vgDest.GetVolumeIds()
-					if len(sourceToDestVolumeIDs) > 0 {
-						pvMappings := make([]replicationv1alpha1.PersistentVolumeMapping, 0, len(sourceToDestVolumeIDs))
-						for sourceVolumeHandle, destinationVolumeHandle := range sourceToDestVolumeIDs {
-							pvMappings = append(pvMappings, replicationv1alpha1.PersistentVolumeMapping{
-								VolumeHandle:            sourceVolumeHandle,
-								DestinationVolumeHandle: destinationVolumeHandle,
-							})
-						}
-						instance.Status.PersistentVolumeMappingList = pvMappings
-					}
-				}
 				setDestinationInfoAvailableCondition(&instance.Status.Conditions, instance.Generation,
 					instance.Spec.DataSource.Kind)
 			} else {
+				instance.Status.DestinationVolumeID = ""
 				setDestinationInfoPendingCondition(&instance.Status.Conditions, instance.Generation,
 					instance.Spec.DataSource.Kind)
+
+				uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
+				if uErr != nil {
+					logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
+				}
+				logger.Info("destination info pending, requeuing in 30s")
+				return ctrl.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
 			}
 		}
 	}
@@ -947,11 +954,7 @@ func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) 
 		logger.Error(err, "failed to parse schedulingInterval, using default", "value", rawScheduleTime)
 		return defaultScheduleTime
 	}
-	if scheduleTime < 2*time.Minute {
-		logger.Info("schedulingInterval is less than 2 minutes, not halving it")
-		return scheduleTime
-	}
-	return scheduleTime / 2
+	return scheduleTime
 }
 
 func protoReplicationStatusToString(status replicationlib.GetVolumeReplicationInfoResponse_Status) string {
