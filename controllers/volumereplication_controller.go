@@ -367,6 +367,17 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Error(err, "failed to update volumeReplication status", "VRName", instance.Name)
 		}
 
+		// If the volume replication is in Primary state and an error occurred,
+		// requeue the reconciliation with a 15-second delay to allow for
+		// transient issues to resolve before retrying the operation.
+		if instance.Status.State == replicationv1alpha1.PrimaryState {
+			return ctrl.Result{
+				Requeue: true,
+				// in case of any error during primary state, requeue for every 15 seconds.
+				RequeueAfter: time.Second * 15,
+			}, nil
+		}
+
 		if instance.Status.State == replicationv1alpha1.SecondaryState {
 			return ctrl.Result{
 				Requeue: true,
