@@ -246,11 +246,24 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	} else {
 		if contains(instance.GetFinalizers(), volumeReplicationFinalizer) {
-			err = r.disableVolumeReplication(logger, replicationSource, replicationHandle, parameters, secret)
-			if err != nil {
-				logger.Error(err, "failed to disable replication")
 
-				return ctrl.Result{}, err
+			// If the user's desired state is Secondary OR the storage is currently in a Secondary state,
+			// skip the gRPC call to DisableVolumeReplication entirely.
+			if instance.Spec.ReplicationState == replicationv1alpha1.Secondary ||
+				instance.Status.State == replicationv1alpha1.SecondaryState {
+
+				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object is in Secondary state",
+					"VRName", instance.Name,
+					"SpecState", instance.Spec.ReplicationState,
+					"StatusState", instance.Status.State)
+
+			} else {
+				err = r.disableVolumeReplication(logger, replicationSource, replicationHandle, parameters, secret)
+				if err != nil {
+					logger.Error(err, "failed to disable replication")
+
+					return ctrl.Result{}, err
+				}
 			}
 
 			if pvc != nil {
