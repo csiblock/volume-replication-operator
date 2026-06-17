@@ -49,6 +49,12 @@ type VolumeReplication interface {
 	// ResyncVolume RPC call to resync the volume.
 	ResyncVolume(replicationSource *replicationlib.ReplicationSource, replicationID string,
 		force bool, secrets, parameters map[string]string) (*replicationlib.ResyncVolumeResponse, error)
+	// GetVolumeReplicationInfo RPC call to get the volume replication info.
+	GetVolumeReplicationInfo(replicationSource *replicationlib.ReplicationSource, replicationID string,
+		secrets map[string]string) (*replicationlib.GetVolumeReplicationInfoResponse, error)
+	// GetReplicationDestinationInfo RPC call to get the replication destination info.
+	GetReplicationDestinationInfo(replicationSource *replicationlib.ReplicationSource,
+		secrets map[string]string) (*replicationlib.GetReplicationDestinationInfoResponse, error)
 }
 
 // NewReplicationClient returns VolumeReplication interface which has the RPC
@@ -150,6 +156,42 @@ func (rc *replicationClient) ResyncVolume(replicationSource *replicationlib.Repl
 	defer cancel()
 
 	resp, err := rc.client.ResyncVolume(createCtx, req)
+
+	return resp, err
+}
+
+func (rc *replicationClient) GetVolumeReplicationInfo(
+	replicationSource *replicationlib.ReplicationSource,
+	replicationID string,
+	secrets map[string]string,
+) (*replicationlib.GetVolumeReplicationInfoResponse, error) {
+	req := &replicationlib.GetVolumeReplicationInfoRequest{
+		ReplicationSource: replicationSource,
+		ReplicationId:     replicationID,
+		Secrets:           secrets,
+	}
+
+	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
+	defer cancel()
+
+	resp, err := rc.client.GetVolumeReplicationInfo(createCtx, req)
+
+	return resp, err
+}
+
+func (rc *replicationClient) GetReplicationDestinationInfo(
+	replicationSource *replicationlib.ReplicationSource,
+	secrets map[string]string,
+) (*replicationlib.GetReplicationDestinationInfoResponse, error) {
+	req := &replicationlib.GetReplicationDestinationInfoRequest{
+		ReplicationSource: replicationSource,
+		Secrets:           secrets,
+	}
+
+	createCtx, cancel := context.WithTimeout(context.Background(), rc.timeout)
+	defer cancel()
+
+	resp, err := rc.client.GetReplicationDestinationInfo(createCtx, req)
 
 	return resp, err
 }

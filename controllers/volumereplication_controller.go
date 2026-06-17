@@ -31,6 +31,7 @@ import (
 	replicationlib "github.com/csi-addons/spec/lib/go/replication"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -50,11 +51,15 @@ const (
 	volumeGroupDataSource  = "VolumeGroup"
 	volumeReplicationClass = "VolumeReplicationClass"
 	volumeReplication      = "VolumeReplication"
+	defaultScheduleTime    = time.Hour
 )
 
 var (
-	volumePromotionKnownErrors    = []codes.Code{codes.FailedPrecondition}
-	disableReplicationKnownErrors = []codes.Code{codes.NotFound}
+	volumePromotionKnownErrors               = []codes.Code{codes.FailedPrecondition}
+	disableReplicationKnownErrors            = []codes.Code{codes.NotFound}
+	getReplicationInfoKnownErrors            = []codes.Code{codes.NotFound}
+	getReplicationDestinationInfoKnownErrors = []codes.Code{codes.NotFound, codes.Unimplemented}
+	promoteRemoteNotReadyErrors              = []codes.Code{codes.Internal}
 )
 
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
@@ -241,11 +246,24 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	} else {
 		if contains(instance.GetFinalizers(), volumeReplicationFinalizer) {
-			err = r.disableVolumeReplication(logger, replicationSource, replicationHandle, parameters, secret)
-			if err != nil {
-				logger.Error(err, "failed to disable replication")
 
-				return ctrl.Result{}, err
+			// If the user's desired state is Secondary OR the storage is currently in a Secondary state,
+			// skip the gRPC call to DisableVolumeReplication entirely.
+			if instance.Spec.ReplicationState == replicationv1alpha1.Secondary ||
+				instance.Status.State == replicationv1alpha1.SecondaryState {
+
+				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object is in Secondary state",
+					"VRName", instance.Name,
+					"SpecState", instance.Spec.ReplicationState,
+					"StatusState", instance.Status.State)
+
+			} else {
+				err = r.disableVolumeReplication(logger, replicationSource, replicationHandle, parameters, secret)
+				if err != nil {
+					logger.Error(err, "failed to disable replication")
+
+					return ctrl.Result{}, err
+				}
 			}
 
 			if pvc != nil {
@@ -367,6 +385,29 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Error(err, "failed to update volumeReplication status", "VRName", instance.Name)
 		}
 
+		if grpcStatus, ok := grpcstatus.FromError(replicationErr); ok &&
+			instance.Spec.ReplicationState == replicationv1alpha1.Primary {
+			for _, code := range promoteRemoteNotReadyErrors {
+				if grpcStatus.Code() == code {
+					logger.Info("secondary storage not ready for promotion, requeuing",
+						"VRName", instance.Name,
+						"RequeueAfter", "5s")
+					return ctrl.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
+				}
+			}
+		}
+
+		// If the volume replication is in Primary state and an error occurred,
+		// requeue the reconciliation with a 15-second delay to allow for
+		// transient issues to resolve before retrying the operation.
+		if instance.Status.State == replicationv1alpha1.PrimaryState {
+			return ctrl.Result{
+				Requeue: true,
+				// in case of any error during primary state, requeue for every 15 seconds.
+				RequeueAfter: time.Second * 15,
+			}, nil
+		}
+
 		if instance.Status.State == replicationv1alpha1.SecondaryState {
 			return ctrl.Result{
 				Requeue: true,
@@ -404,12 +445,90 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	instance.Status.LastCompletionTime = getCurrentTime()
 
+	requeueForInfo := false
+
+	isRamenFlow := instance.Spec.DataSource.Kind == pvcDataSource && parameters["replication_policy"] != ""
+	isTraditionalVGFlow := instance.Spec.DataSource.Kind == volumeGroupDataSource
+
+	if instance.Spec.ReplicationState == replicationv1alpha1.Primary && (isRamenFlow || isTraditionalVGFlow) {
+		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
+		if infoErr != nil {
+			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
+			if uErr != nil {
+				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
+			}
+			return ctrl.Result{}, infoErr
+		}
+		if info != nil {
+			protoTimestamp := info.GetLastSyncTime()
+			if protoTimestamp != nil {
+				lastSyncTime := metav1.NewTime(protoTimestamp.AsTime())
+				instance.Status.LastSyncTime = &lastSyncTime
+			} else {
+				instance.Status.LastSyncTime = nil
+			}
+
+			protoDuration := info.GetLastSyncDuration()
+			if protoDuration != nil {
+				lastSyncDuration := metav1.Duration{Duration: protoDuration.AsDuration()}
+				instance.Status.LastSyncDuration = &lastSyncDuration
+			} else {
+				instance.Status.LastSyncDuration = nil
+			}
+
+			lastSyncBytes := info.GetLastSyncBytes()
+			if lastSyncBytes != 0 {
+				instance.Status.LastSyncBytes = &lastSyncBytes
+			} else {
+				instance.Status.LastSyncBytes = nil
+			}
+
+			instance.Status.ReplicationStatus = protoReplicationStatusToString(info.GetStatus())
+			instance.Status.StatusMessage = info.GetStatusMessage()
+
+			requeueForInfo = true
+		}
+	}
+
+	if isRamenFlow {
+		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
+		if destErr != nil {
+			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
+				instance.Spec.DataSource.Kind, destErr.Error())
+		} else if destInfo != nil {
+			replicationDest := destInfo.GetReplicationDestination()
+			if replicationDest != nil {
+				if volDest := replicationDest.GetVolume(); volDest != nil {
+					instance.Status.DestinationVolumeID = volDest.GetVolumeId()
+				}
+				setDestinationInfoAvailableCondition(&instance.Status.Conditions, instance.Generation,
+					instance.Spec.DataSource.Kind)
+			} else {
+				instance.Status.DestinationVolumeID = ""
+				setDestinationInfoPendingCondition(&instance.Status.Conditions, instance.Generation,
+					instance.Spec.DataSource.Kind)
+
+				uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
+				if uErr != nil {
+					logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
+				}
+				logger.Info("destination info pending, requeuing in 30s")
+				return ctrl.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
+			}
+		}
+	}
+
 	err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 
 	logger.Info(msg)
+
+	if requeueForInfo {
+		interval := getInfoReconcileInterval(parameters, logger)
+		return ctrl.Result{Requeue: true, RequeueAfter: interval}, nil
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -779,4 +898,101 @@ func getCurrentTime() *metav1.Time {
 	metav1NowTime := metav1.NewTime(time.Now())
 
 	return &metav1NowTime
+}
+
+func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
+	instance *replicationv1alpha1.VolumeReplication,
+	logger logr.Logger,
+	replicationSource *replicationlib.ReplicationSource,
+	replicationID string,
+	secrets map[string]string,
+) (*replicationlib.GetVolumeReplicationInfoResponse, error) {
+	params := replication.CommonRequestParameters{
+		ReplicationSource: replicationSource,
+		ReplicationID:     replicationID,
+		Secrets:           secrets,
+		Replication:       r.Replication,
+		Parameters:        map[string]string{},
+	}
+
+	vr := replication.Replication{Params: params}
+	resp := vr.GetInfo()
+	if resp.Error != nil {
+		logger.Error(resp.Error, "failed to get volume replication info", "VRName", instance.Name)
+		if isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors); isKnownError {
+			logger.Info("volume replication info not found", "VRName", instance.Name)
+			return nil, nil
+		}
+		return nil, resp.Error
+	}
+
+	infoResp, ok := resp.Response.(*replicationlib.GetVolumeReplicationInfoResponse)
+	if !ok {
+		err := fmt.Errorf("received response of unexpected type")
+		logger.Error(err, "unable to parse GetVolumeReplicationInfo response", "VRName", instance.Name)
+		return nil, err
+	}
+	return infoResp, nil
+}
+
+func (r *VolumeReplicationReconciler) getReplicationDestinationInfo(
+	instance *replicationv1alpha1.VolumeReplication,
+	logger logr.Logger,
+	replicationSource *replicationlib.ReplicationSource,
+	secrets map[string]string,
+) (*replicationlib.GetReplicationDestinationInfoResponse, error) {
+	params := replication.CommonRequestParameters{
+		ReplicationSource: replicationSource,
+		Secrets:           secrets,
+		Replication:       r.Replication,
+		Parameters:        map[string]string{},
+	}
+
+	vr := replication.Replication{Params: params}
+	resp := vr.GetDestinationInfo()
+
+	if resp.Error != nil {
+		logger.Error(resp.Error, "failed to get replication destination info", "VRName", instance.Name)
+		if isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors); isKnownError {
+			logger.Info("replication destination info not found or not implemented, skipping",
+				"VRName", instance.Name)
+			return nil, nil
+		}
+		return nil, resp.Error
+	}
+
+	destResp, ok := resp.Response.(*replicationlib.GetReplicationDestinationInfoResponse)
+
+	if !ok {
+		err := fmt.Errorf("received response of unexpected type")
+		logger.Error(err, "unable to parse GetReplicationDestinationInfo response", "VRName", instance.Name)
+		return nil, err
+	}
+	return destResp, nil
+}
+
+func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) time.Duration {
+	rawScheduleTime := parameters["schedulingInterval"]
+	if rawScheduleTime == "" {
+		return defaultScheduleTime
+	}
+	scheduleTime, err := time.ParseDuration(rawScheduleTime)
+	if err != nil {
+		logger.Error(err, "failed to parse schedulingInterval, using default", "value", rawScheduleTime)
+		return defaultScheduleTime
+	}
+	return scheduleTime
+}
+
+func protoReplicationStatusToString(status replicationlib.GetVolumeReplicationInfoResponse_Status) string {
+	switch status {
+	case replicationlib.GetVolumeReplicationInfoResponse_HEALTHY:
+		return "Healthy"
+	case replicationlib.GetVolumeReplicationInfoResponse_DEGRADED:
+		return "Degraded"
+	case replicationlib.GetVolumeReplicationInfoResponse_ERROR:
+		return "Error"
+	default:
+		return "Unknown"
+	}
 }
