@@ -435,9 +435,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	requeueForInfo := false
 
 	isRamenFlow := instance.Spec.DataSource.Kind == pvcDataSource && parameters["replication_policy"] != ""
-	isTraditionalVGFlow := instance.Spec.DataSource.Kind == volumeGroupDataSource
 
-	if instance.Spec.ReplicationState == replicationv1alpha1.Primary && (isRamenFlow || isTraditionalVGFlow) {
+	if instance.Spec.ReplicationState == replicationv1alpha1.Primary && isRamenFlow {
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
 		if infoErr != nil {
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg)
