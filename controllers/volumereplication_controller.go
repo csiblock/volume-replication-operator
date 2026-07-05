@@ -76,7 +76,6 @@ type VolumeReplicationReconciler struct {
 // +kubebuilder:rbac:groups=replication.storage.openshift.io,resources=volumereplications,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=replication.storage.openshift.io,resources=volumereplications/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=replication.storage.openshift.io,resources=volumereplications/finalizers,verbs=update
-// +kubebuilder:rbac:groups=ramendr.openshift.io,resources=volumereplicationgroups,verbs=get
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -306,14 +305,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		logger.Error(err, "failed to update status")
 
 		return reconcile.Result{}, err
-	}
-
-	// skip enable and promote gRPC calls if parent VRG desires secondary
-	if instance.Spec.ReplicationState == replicationv1alpha1.Primary &&
-		r.isParentVRGSecondary(ctx, instance, logger) {
-		logger.Info("skipping EnableReplication and Promote: parent VRG is secondary",
-			"VRName", instance.Name)
-		return ctrl.Result{}, nil
 	}
 
 	// enable replication on every reconcile
@@ -993,29 +984,4 @@ func protoReplicationStatusToString(status replicationlib.GetVolumeReplicationIn
 	default:
 		return "Unknown"
 	}
-}
-
-func (r *VolumeReplicationReconciler) isParentVRGSecondary(ctx context.Context, instance *replicationv1alpha1.VolumeReplication, logger logr.Logger) bool {
-	for _, ref := range instance.GetOwnerReferences() {
-		if ref.Kind == "VolumeReplicationGroup" {
-			vrg := &unstructured.Unstructured{}
-			vrg.SetGroupVersionKind(schema.GroupVersionKind{
-				Group:   "ramendr.openshift.io",
-				Version: "v1alpha1",
-				Kind:    "VolumeReplicationGroup",
-			})
-			if err := r.Get(ctx, types.NamespacedName{
-				Name:      ref.Name,
-				Namespace: instance.Namespace,
-			}, vrg); err != nil {
-				logger.Error(err, "failed to get parent VRG", "VRGName", ref.Name)
-				return false
-			}
-			state, found, _ := unstructured.NestedString(vrg.Object, "spec", "replicationState")
-			if found && replicationv1alpha1.ReplicationState(state) == replicationv1alpha1.Secondary {
-				return true
-			}
-		}
-	}
-	return false
 }
