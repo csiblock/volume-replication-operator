@@ -247,12 +247,10 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	} else {
 		if contains(instance.GetFinalizers(), volumeReplicationFinalizer) {
 
-			// If the user's desired state is Secondary OR the storage is currently in a Secondary state,
-			// skip the gRPC call to DisableVolumeReplication entirely.
-			if instance.Spec.ReplicationState == replicationv1alpha1.Secondary ||
-				instance.Status.State == replicationv1alpha1.SecondaryState {
+			// If the desired state is Secondary, skip the gRPC call to DisableVolumeReplication.
+			if instance.Spec.ReplicationState == replicationv1alpha1.Secondary {
 
-				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object is in Secondary state",
+				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object's desired state is Secondary",
 					"VRName", instance.Name,
 					"SpecState", instance.Spec.ReplicationState,
 					"StatusState", instance.Status.State)
