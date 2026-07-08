@@ -252,7 +252,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if contains(instance.GetFinalizers(), volumeReplicationFinalizer) {
 
 			// If the desired state is Secondary, skip the gRPC call to DisableVolumeReplication.
-			if instance.Spec.ReplicationState == replicationv1alpha1.Secondary {
+			if isRamenFlow && instance.Spec.ReplicationState == replicationv1alpha1.Secondary {
 
 				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object's desired state is Secondary",
 					"VRName", instance.Name,
