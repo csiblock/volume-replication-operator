@@ -476,7 +476,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				instance.Status.LastSyncBytes = nil
 			}
 
-			instance.Status.ReplicationStatus = protoReplicationStatusToString(info.GetStatus())
+			instance.Status.Status = protoReplicationStatusToString(info.GetStatus())
 			instance.Status.StatusMessage = info.GetStatusMessage()
 
 			requeueForInfo = true
