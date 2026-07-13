@@ -342,6 +342,10 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Info("VR spec generation already processed, skipping Promote",
 				"VRName", instance.Name, "Generation", instance.Generation)
 		} else {
+			if forcePromote {
+				logger.Info("force-promote label triggered, running Promote",
+					"VRName", instance.Name, "Generation", instance.Generation)
+			}
 			replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret)
 		}
 
@@ -552,9 +556,9 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 
 	forcePromotePredicate := predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
-			oldVal := e.ObjectOld.GetLabels()[forcePromoteLabel]
 			newVal := e.ObjectNew.GetLabels()[forcePromoteLabel]
-			return oldVal != newVal
+			oldVal := e.ObjectOld.GetLabels()[forcePromoteLabel]
+			return newVal == "true" && oldVal != "true"
 		},
 	}
 
