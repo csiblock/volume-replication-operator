@@ -42,6 +42,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
@@ -549,7 +550,18 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 	)
 	metav1.AddToGroupVersion(r.Scheme, volumegroupv1.GroupVersion)
 
-	pred := predicate.GenerationChangedPredicate{}
+	forcePromotePredicate := predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			oldVal := e.ObjectOld.GetLabels()[forcePromoteLabel]
+			newVal := e.ObjectNew.GetLabels()[forcePromoteLabel]
+			return oldVal != newVal
+		},
+	}
+
+	pred := predicate.Or(
+		predicate.GenerationChangedPredicate{},
+		forcePromotePredicate,
+	)
 
 	r.DriverConfig = cfg
 
