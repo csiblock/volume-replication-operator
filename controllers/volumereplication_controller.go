@@ -52,6 +52,7 @@ const (
 	volumeReplicationClass = "VolumeReplicationClass"
 	volumeReplication      = "VolumeReplication"
 	defaultScheduleTime    = time.Hour
+	forcePromoteLabel      = "ramen.io/force-promote"
 )
 
 var (
@@ -302,6 +303,11 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	instance.Status.LastStartTime = getCurrentTime()
 
+	forcePromote := instance.Labels[forcePromoteLabel] == "true"
+	if forcePromote {
+		instance.Labels[forcePromoteLabel] = "false"
+	}
+
 	err = r.Update(ctx, instance)
 	if err != nil {
 		logger.Error(err, "failed to update status")
@@ -331,7 +337,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	switch instance.Spec.ReplicationState {
 	case replicationv1alpha1.Primary:
-		if isRamenFlow && instance.Generation == processedGeneration {
+		if isRamenFlow && instance.Generation == processedGeneration && !forcePromote {
 			logger.Info("VR spec generation already processed, skipping Promote",
 				"VRName", instance.Name, "Generation", instance.Generation)
 		} else {
