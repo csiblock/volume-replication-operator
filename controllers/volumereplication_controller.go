@@ -335,7 +335,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	var replicationErr error
-
+	var promotedThisReconcile bool
 	var requeueForResync bool
 
 	switch instance.Spec.ReplicationState {
@@ -348,6 +348,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				logger.Info("force-promote label triggered, running Promote",
 					"VRName", instance.Name, "Generation", instance.Generation)
 			}
+			promotedThisReconcile = true
 			replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret, forcePromote)
 		}
 
@@ -462,6 +463,16 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	requeueForInfo := false
 
 	if instance.Spec.ReplicationState == replicationv1alpha1.Primary && isRamenFlow {
+		if promotedThisReconcile {
+			logger.Info("promote just ran this reconcile, deferring GetVolumeReplicationInfo by 15s to allow storage to complete transitions",
+				"VRName", instance.Name)
+			err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 15}, nil
+		}
+
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
 		if infoErr != nil {
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
