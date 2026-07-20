@@ -31,7 +31,6 @@ import (
 	replicationlib "github.com/csi-addons/spec/lib/go/replication"
 	"github.com/go-logr/logr"
 	"google.golang.org/grpc/codes"
-	grpcstatus "google.golang.org/grpc/status"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -61,7 +60,7 @@ var (
 	disableReplicationKnownErrors            = []codes.Code{codes.NotFound}
 	getReplicationInfoKnownErrors            = []codes.Code{codes.NotFound}
 	getReplicationDestinationInfoKnownErrors = []codes.Code{codes.NotFound, codes.Unimplemented}
-	promoteRemoteNotReadyErrors              = []codes.Code{codes.Internal}
+	promoteRetryableErrors                   = []codes.Code{codes.Unavailable}
 )
 
 // VolumeReplicationReconciler reconciles a VolumeReplication object.
@@ -403,16 +402,12 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.Error(err, "failed to update volumeReplication status", "VRName", instance.Name)
 		}
 
-		if grpcStatus, ok := grpcstatus.FromError(replicationErr); ok &&
-			instance.Spec.ReplicationState == replicationv1alpha1.Primary {
-			for _, code := range promoteRemoteNotReadyErrors {
-				if grpcStatus.Code() == code {
-					logger.Info("secondary storage not ready for promotion, requeuing",
-						"VRName", instance.Name,
-						"RequeueAfter", "5s")
-					return ctrl.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
-				}
-			}
+		if instance.Spec.ReplicationState == replicationv1alpha1.Primary &&
+			replication.HasKnownGRPCError(replicationErr, promoteRetryableErrors) {
+			logger.Info("secondary storage not ready for promotion, requeuing",
+				"VRName", instance.Name,
+				"RequeueAfter", "10s")
+			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
 		}
 
 		if instance.Status.State == replicationv1alpha1.SecondaryState {
