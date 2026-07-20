@@ -120,12 +120,12 @@ func (r *Replication) GetDestinationInfo() *Response {
 	return &Response{Response: resp, Error: err}
 }
 
-func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
-	if r.Error == nil {
+func HasKnownGRPCError(err error, knownErrors []codes.Code) bool {
+	if err == nil {
 		return false
 	}
 
-	grpcStatus, ok := status.FromError(r.Error)
+	grpcStatus, ok := status.FromError(err)
 	if !ok {
 		// This is not gRPC error. The operation must have failed before gRPC
 		// method was called, otherwise we would get gRPC error.
@@ -139,6 +139,10 @@ func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
 	}
 
 	return false
+}
+
+func (r *Response) HasKnownGRPCError(knownErrors []codes.Code) bool {
+	return HasKnownGRPCError(r.Error, knownErrors)
 }
 
 // GetMessageFromError returns the message from the error.
