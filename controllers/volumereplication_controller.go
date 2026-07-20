@@ -414,10 +414,13 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
 		}
 
-		if instance.Status.State == replicationv1alpha1.SecondaryState {
+		if (instance.Spec.ReplicationState == replicationv1alpha1.Secondary &&
+			instance.Status.State == replicationv1alpha1.PrimaryState) ||
+			instance.Status.State == replicationv1alpha1.SecondaryState {
 			return ctrl.Result{
 				Requeue: true,
-				// in case of any error during secondary state, requeue for every 15 seconds.
+				// in case of any error during secondary state, or during
+				// demote from primary state, requeue for every 15 seconds.
 				RequeueAfter: time.Second * 15,
 			}, nil
 		}
