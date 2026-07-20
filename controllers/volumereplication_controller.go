@@ -304,8 +304,11 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	instance.Status.LastStartTime = getCurrentTime()
 
 	forcePromote := instance.Labels[forcePromoteLabel] == "true"
-	if forcePromote {
+	if forcePromote && instance.Spec.ReplicationState != replicationv1alpha1.Primary {
+		logger.Info("force-promote label set on non-Primary VR, clearing as it does not apply",
+			"VRName", instance.Name, "SpecState", instance.Spec.ReplicationState)
 		instance.Labels[forcePromoteLabel] = "false"
+		forcePromote = false
 	}
 
 	err = r.Update(ctx, instance)
@@ -345,7 +348,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				logger.Info("force-promote label triggered, running Promote",
 					"VRName", instance.Name, "Generation", instance.Generation)
 			}
-			replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret)
+			replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret, forcePromote)
 		}
 
 	case replicationv1alpha1.Secondary:
@@ -419,6 +422,15 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		return ctrl.Result{}, replicationErr
+	}
+
+	if forcePromote && instance.Spec.ReplicationState == replicationv1alpha1.Primary {
+		instance.Labels[forcePromoteLabel] = "false"
+		if err := r.Update(ctx, instance); err != nil {
+			logger.Error(err, "failed to clear force-promote label after successful promote",
+				"VRName", instance.Name)
+			return ctrl.Result{}, err
+		}
 	}
 
 	if requeueForResync {
@@ -657,7 +669,7 @@ func (r *VolumeReplicationReconciler) waitForVolumeReplicationResource(logger lo
 
 // markVolumeAsPrimary defines and runs a set of tasks required to mark a volume as primary.
 func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObject *replicationv1alpha1.VolumeReplication,
-	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string,
+	logger logr.Logger, replicationSource *replicationlib.ReplicationSource, replicationID string, parameters, secrets map[string]string, force bool,
 ) error {
 	params := replication.CommonRequestParameters{
 		ReplicationSource: replicationSource,
@@ -669,23 +681,19 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 
 	volumeReplication := replication.Replication{
 		Params: params,
+		Force:  force,
 	}
 
 	resp := volumeReplication.Promote()
 	if resp.Error != nil {
 		isKnownError := resp.HasKnownGRPCError(volumePromotionKnownErrors)
 		if !isKnownError {
-			if resp.Error != nil {
-				logger.Error(resp.Error, "failed to promote volume")
-				setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
+			logger.Error(resp.Error, "failed to promote volume")
+			setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
 
-				return resp.Error
-			}
+			return resp.Error
 		} else {
-			// force promotion
-			logger.Info("force promoting volume due to known grpc error", "error", resp.Error)
-
-			volumeReplication.Force = true
+			logger.Info("retrying promote after known grpc error", "error", resp.Error)
 
 			resp := volumeReplication.Promote()
 			if resp.Error != nil {
