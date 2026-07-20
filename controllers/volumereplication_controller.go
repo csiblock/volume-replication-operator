@@ -426,6 +426,12 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	if forcePromote && instance.Spec.ReplicationState == replicationv1alpha1.Primary {
+		if err := r.Status().Update(ctx, instance); err != nil {
+			logger.Error(err, "failed to persist promoted condition before clearing force-promote label",
+				"VRName", instance.Name)
+			return ctrl.Result{}, err
+		}
+
 		instance.Labels[forcePromoteLabel] = "false"
 		if err := r.Update(ctx, instance); err != nil {
 			logger.Error(err, "failed to clear force-promote label after successful promote",
