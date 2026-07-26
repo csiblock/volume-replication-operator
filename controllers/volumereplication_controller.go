@@ -704,6 +704,8 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 		Force:  force,
 	}
 
+	logger.Info("calling Promote", "VRName", volumeReplicationObject.Name, "force", force)
+
 	resp := volumeReplication.Promote()
 	if resp.Error != nil {
 		isKnownError := resp.HasKnownGRPCError(volumePromotionKnownErrors)
@@ -725,6 +727,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 		}
 	}
 
+	logger.Info("Promote succeeded", "VRName", volumeReplicationObject.Name)
 	setPromotedCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
 
 	return nil
