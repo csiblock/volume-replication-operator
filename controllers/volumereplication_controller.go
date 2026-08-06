@@ -53,6 +53,10 @@ const (
 	volumeReplication      = "VolumeReplication"
 	defaultScheduleTime    = time.Hour
 	forcePromoteLabel      = "ramen.io/force-promote"
+
+	promoteRetryOnSecondaryNotReadyRequeue = 10 * time.Second
+	promoteDeferredReplicationInfoRequeue  = 15 * time.Second
+	destinationInfoPendingRequeue          = 60 * time.Second
 )
 
 var (
@@ -409,9 +413,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if instance.Spec.ReplicationState == replicationv1alpha1.Primary &&
 			replication.HasKnownGRPCError(replicationErr, promoteRetryableErrors) {
 			logger.Info("secondary storage not ready for promotion, requeuing",
-				"VRName", instance.Name,
-				"RequeueAfter", "10s")
-			return ctrl.Result{Requeue: true, RequeueAfter: 10 * time.Second}, nil
+				"VRName", instance.Name, "RequeueAfter", promoteRetryOnSecondaryNotReadyRequeue)
+			return ctrl.Result{Requeue: true, RequeueAfter: promoteRetryOnSecondaryNotReadyRequeue}, nil
 		}
 
 		if (instance.Spec.ReplicationState == replicationv1alpha1.Secondary &&
@@ -473,13 +476,13 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if instance.Spec.ReplicationState == replicationv1alpha1.Primary && isRamenFlow {
 		if promotedThisReconcile {
-			logger.Info("promote just ran this reconcile, deferring GetVolumeReplicationInfo by 15s to allow storage to complete transitions",
-				"VRName", instance.Name)
+			logger.Info("promote just ran this reconcile, deferring GetVolumeReplicationInfo",
+				"VRName", instance.Name, "RequeueAfter", promoteDeferredReplicationInfoRequeue)
 			err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
-			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 15}, nil
+			return ctrl.Result{Requeue: true, RequeueAfter: promoteDeferredReplicationInfoRequeue}, nil
 		}
 
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
@@ -530,7 +533,9 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			replicationDest := destInfo.GetReplicationDestination()
 			if replicationDest != nil {
 				if volDest := replicationDest.GetVolume(); volDest != nil {
-					instance.Status.DestinationVolumeID = volDest.GetVolumeId()
+					destinationVolumeID := volDest.GetVolumeId()
+					instance.Status.DestinationVolumeID = destinationVolumeID
+					logger.Info("destination volume id resolved", "VRName", instance.Name, "DestinationVolumeID", destinationVolumeID)
 				}
 				setDestinationInfoAvailableCondition(&instance.Status.Conditions, instance.Generation,
 					instance.Spec.DataSource.Kind)
@@ -543,8 +548,9 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				if uErr != nil {
 					logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
 				}
-				logger.Info("destination info pending, requeuing in 30s")
-				return ctrl.Result{Requeue: true, RequeueAfter: 30 * time.Second}, nil
+				logger.Info("destination info not yet available, requeuing", "VRName",
+					instance.Name, "RequeueAfter", destinationInfoPendingRequeue)
+				return ctrl.Result{Requeue: true, RequeueAfter: destinationInfoPendingRequeue}, nil
 			}
 		}
 	}
