@@ -88,7 +88,7 @@ type VolumeReplicationStatus struct {
 	LastSyncTime        *metav1.Time     `json:"lastSyncTime,omitempty"`
 	LastSyncBytes       *int64           `json:"lastSyncBytes,omitempty"`
 	LastSyncDuration    *metav1.Duration `json:"lastSyncDuration,omitempty"`
-	DestinationVolumeID string           `json:"destinationVolumeID,omitempty"`
+	DestinationVolumeID string           `json:"destinationVolumeId,omitempty"`
 	Status              string           `json:"status,omitempty"`
 	StatusMessage       string           `json:"statusMessage,omitempty"`
 }
