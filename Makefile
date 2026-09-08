@@ -1,3 +1,5 @@
+# SHELL must be bash so that `source` works in the test target.
+SHELL := /bin/bash
 # VERSION defines the project version for the bundle.
 # Update this value when you upgrade the version of your project.
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
@@ -47,10 +49,10 @@ all: manager
 
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
-test: generate fmt vet manifests
+SETUP_ENVTEST = $(shell pwd)/bin/setup-envtest
+test: generate fmt vet manifests setup-envtest
 	mkdir -p ${ENVTEST_ASSETS_DIR}
-	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.7.0/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use --use-env -p path)" go test ./... -coverprofile cover.out
 
 # Build manager binary
 manager: generate fmt vet
@@ -108,6 +110,10 @@ dockerx-build-multi-arch: test
 # Push the docker image
 dockerx-build-and-push-multi-arch: test
 	docker buildx build --tag ${IMG} --platform ${image_arch_list} --push .
+
+# Download setup-envtest locally if necessary
+setup-envtest:
+	$(call go-get-tool,$(SETUP_ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest@latest)
 
 # Download controller-gen locally if necessary
 CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
