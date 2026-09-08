@@ -51,10 +51,18 @@ all: manager
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 SETUP_ENVTEST = $(shell pwd)/bin/setup-envtest
 ENVTEST_K8S_VERSION ?= 1.32.0
+# Packages that contain test files (avoids go: no such tool "covdata" on Go 1.25
+# which fires for packages with no test files when -coverpkg is used).
+TEST_PKGS = $(shell go list -f '{{if .TestGoFiles}}{{.ImportPath}}{{end}}' ./...)
 test: generate fmt vet manifests setup-envtest
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" \
-		go test -covermode=atomic -coverpkg=./... ./...
+		go test -covermode=atomic -coverpkg=./... $(TEST_PKGS)
+
+# Run only the tests (skip generate/fmt/vet/manifests) — useful for local iteration.
+test-only: setup-envtest
+	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" \
+		go test -covermode=atomic -coverpkg=./... $(TEST_PKGS)
 
 # Build manager binary
 manager: generate fmt vet
