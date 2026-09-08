@@ -1,5 +1,5 @@
-github.com/IBM/csi-volume-group-operator v0.9.5 h1:GX/1+I69DFncmfqYoIx5drG8u/7qgKOa7jDPae0PinM=
-github.com/IBM/csi-volume-group-operator v0.9.5/go.mod h1:4upBKuke9NBb8vPDis39+//SpZcsa/F7ufSAeOeY7bU=
+github.com/IBM/csi-volume-group-operator v0.9.7 h1:+uLrJwFPFJw4WpKhNA8WusCGR0zUOS0b/q/urLJIBK4=
+github.com/IBM/csi-volume-group-operator v0.9.7/go.mod h1:unT9qfpUtY2VBT/i7SlzBRvCm3dIz0XVddWN0j6jPos=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/blang/semver/v4 v4.0.0 h1:1PFHFE6yCCTv8C1TeyNNarDzntLi7wMI5i/pzqYIsAM=

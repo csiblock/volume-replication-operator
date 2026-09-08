@@ -3,7 +3,7 @@ module github.com/csi-addons/volume-replication-operator
 go 1.25.0
 
 require (
-	github.com/IBM/csi-volume-group-operator v0.9.5
+	github.com/IBM/csi-volume-group-operator v0.9.7
 	github.com/csi-addons/spec v0.2.1-0.20260515055340-d4a373713b9a
 	github.com/go-logr/logr v1.4.3
 	github.com/kubernetes-csi/csi-lib-utils v0.22.0
