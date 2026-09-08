@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	stderrors "errors"
 	"fmt"
 	"time"
 
@@ -505,7 +506,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
-		if infoErr != nil && infoErr != errNilInfo {
+		if infoErr != nil && !stderrors.Is(infoErr, errNilInfo) {
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -547,7 +548,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if isRamenFlow {
 		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
-		if destErr != nil && destErr != errNilDest {
+		if destErr != nil && !stderrors.Is(destErr, errNilDest) {
 			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
 				instance.Spec.DataSource.Kind, destErr.Error())
 		} else if destInfo != nil {
@@ -588,6 +589,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if requeueForInfo {
 		interval := getInfoReconcileInterval(parameters, logger)
+
 		return ctrl.Result{Requeue: true, RequeueAfter: interval}, nil
 	}
 
@@ -615,7 +617,8 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			newVal := e.ObjectNew.GetLabels()[forcePromoteLabel]
 			oldVal := e.ObjectOld.GetLabels()[forcePromoteLabel]
-			return newVal == "true" && oldVal != "true"
+
+			return newVal == forcePromoteLabelTrue && oldVal != forcePromoteLabelTrue
 		},
 	}
 
