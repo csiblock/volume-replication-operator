@@ -50,9 +50,11 @@ all: manager
 # Run tests
 ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 SETUP_ENVTEST = $(shell pwd)/bin/setup-envtest
+ENVTEST_K8S_VERSION ?= 1.32.0
 test: generate fmt vet manifests setup-envtest
 	mkdir -p ${ENVTEST_ASSETS_DIR}
-	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use --use-env -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(SETUP_ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" \
+		go test -covermode=atomic -coverpkg=./... ./...
 
 # Build manager binary
 manager: generate fmt vet
