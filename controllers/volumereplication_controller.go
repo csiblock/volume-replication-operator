@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	stderrors "errors"
 	"fmt"
 	"time"
 
@@ -60,14 +59,7 @@ const (
 	promoteRetryOnSecondaryNotReadyRequeue = 10 * time.Second
 	promoteDeferredReplicationInfoRequeue  = 15 * time.Second
 	destinationInfoPendingRequeue          = 60 * time.Second
-
-	errNilInfo = sentinelError("volume replication info not available")
-	errNilDest = sentinelError("replication destination info not available")
 )
-
-type sentinelError string
-
-func (e sentinelError) Error() string { return string(e) }
 
 var (
 	volumePromotionKnownErrors               = []codes.Code{codes.FailedPrecondition}
@@ -98,7 +90,7 @@ type VolumeReplicationReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
 //
-//nolint:maintidx // Reconcile is inherently complex; refactoring is out of scope here
+//nolint:maintidx // TODO: refactor Reconcile to reduce complexity
 func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("Request.Name", req.Name, "Request.Namespace", req.Namespace)
 
@@ -347,11 +339,11 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return reconcile.Result{}, err
 	}
 
-	var replicationErr error
-
-	var promotedThisReconcile bool
-
-	var requeueForResync bool
+	var (
+		replicationErr        error
+		promotedThisReconcile bool
+		requeueForResync      bool
+	)
 
 	switch instance.Spec.ReplicationState {
 	case replicationv1alpha1.Primary:
@@ -506,7 +498,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
-		if infoErr != nil && !stderrors.Is(infoErr, errNilInfo) {
+		if infoErr != nil {
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
@@ -548,7 +540,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if isRamenFlow {
 		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
-		if destErr != nil && !stderrors.Is(destErr, errNilDest) {
+		if destErr != nil {
 			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
 				instance.Spec.DataSource.Kind, destErr.Error())
 		} else if destInfo != nil {
@@ -752,7 +744,7 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 
 		logger.Info("retrying promote after known grpc error", "error", resp.Error)
 
-		resp = volumeReplication.Promote()
+		resp := volumeReplication.Promote()
 		if resp.Error != nil {
 			logger.Error(resp.Error, "failed to force promote volume")
 			setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
@@ -999,11 +991,10 @@ func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
 	if resp.Error != nil {
 		logger.Error(resp.Error, "failed to get volume replication info", "VRName", instance.Name)
 
-		isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors)
-		if isKnownError {
+		if isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors); isKnownError {
 			logger.Info("volume replication info not found", "VRName", instance.Name)
 
-			return nil, errNilInfo
+			return nil, nil //nolint:nilnil
 		}
 
 		return nil, resp.Error
@@ -1034,24 +1025,23 @@ func (r *VolumeReplicationReconciler) getReplicationDestinationInfo(
 	}
 
 	vr := replication.Replication{Params: params}
-
 	resp := vr.GetDestinationInfo()
 
 	if resp.Error != nil {
 		logger.Error(resp.Error, "failed to get replication destination info", "VRName", instance.Name)
 
-		isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors)
-		if isKnownError {
+		if isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors); isKnownError {
 			logger.Info("replication destination info not found or not implemented, skipping",
 				"VRName", instance.Name)
 
-			return nil, errNilDest
+			return nil, nil //nolint:nilnil
 		}
 
 		return nil, resp.Error
 	}
 
 	destResp, ok := resp.Response.(*replicationlib.GetReplicationDestinationInfoResponse)
+
 	if !ok {
 		err := fmt.Errorf("received response of unexpected type")
 		logger.Error(err, "unable to parse GetReplicationDestinationInfo response", "VRName", instance.Name)
