@@ -172,8 +172,7 @@ func TestGetVolumeReplicationInfo(t *testing.T) {
 	// return success response
 	mockedGetVolumeReplicationInfo := &fake.ReplicationClient{
 		GetVolumeReplicationInfoMock: func(_ *replicationlib.ReplicationSource, _ string, _ map[string]string) (
-			*replicationlib.GetVolumeReplicationInfoResponse, error,
-		) {
+			*replicationlib.GetVolumeReplicationInfoResponse, error) {
 			return &replicationlib.GetVolumeReplicationInfoResponse{}, nil
 		},
 	}
@@ -186,8 +185,7 @@ func TestGetVolumeReplicationInfo(t *testing.T) {
 	// return error
 	mockedGetVolumeReplicationInfo = &fake.ReplicationClient{
 		GetVolumeReplicationInfoMock: func(_ *replicationlib.ReplicationSource, _ string, _ map[string]string) (
-			*replicationlib.GetVolumeReplicationInfoResponse, error,
-		) {
+			*replicationlib.GetVolumeReplicationInfoResponse, error) {
 			return nil, errors.New("failed to get volume replication info")
 		},
 	}
@@ -205,8 +203,7 @@ func TestGetReplicationDestinationInfo(t *testing.T) {
 	// return success response
 	mockedGetReplicationDestinationInfo := &fake.ReplicationClient{
 		GetReplicationDestinationInfoMock: func(_ *replicationlib.ReplicationSource, _ map[string]string) (
-			*replicationlib.GetReplicationDestinationInfoResponse, error,
-		) {
+			*replicationlib.GetReplicationDestinationInfoResponse, error) {
 			return &replicationlib.GetReplicationDestinationInfoResponse{}, nil
 		},
 	}
@@ -219,8 +216,7 @@ func TestGetReplicationDestinationInfo(t *testing.T) {
 	// return error
 	mockedGetReplicationDestinationInfo = &fake.ReplicationClient{
 		GetReplicationDestinationInfoMock: func(_ *replicationlib.ReplicationSource, _ map[string]string) (
-			*replicationlib.GetReplicationDestinationInfoResponse, error,
-		) {
+			*replicationlib.GetReplicationDestinationInfoResponse, error) {
 			return nil, errors.New("failed to get replication destination info")
 		},
 	}

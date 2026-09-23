@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	stderrors "errors"
 	"fmt"
 	"time"
 
@@ -54,20 +53,11 @@ const (
 	volumeReplication      = "VolumeReplication"
 	defaultScheduleTime    = time.Hour
 	forcePromoteLabel      = "ramen.io/force-promote"
-	forcePromoteLabelTrue  = "true"
-	forcePromoteLabelFalse = "false"
 
 	promoteRetryOnSecondaryNotReadyRequeue = 10 * time.Second
 	promoteDeferredReplicationInfoRequeue  = 15 * time.Second
 	destinationInfoPendingRequeue          = 60 * time.Second
-
-	errNilInfo = sentinelError("volume replication info not available")
-	errNilDest = sentinelError("replication destination info not available")
 )
-
-type sentinelError string
-
-func (e sentinelError) Error() string { return string(e) }
 
 var (
 	volumePromotionKnownErrors               = []codes.Code{codes.FailedPrecondition}
@@ -97,8 +87,6 @@ type VolumeReplicationReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.0/pkg/reconcile
-//
-//nolint:maintidx // Reconcile is inherently complex; refactoring is out of scope here
 func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := r.Log.WithValues("Request.Name", req.Name, "Request.Namespace", req.Namespace)
 
@@ -267,12 +255,15 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		}
 	} else {
 		if contains(instance.GetFinalizers(), volumeReplicationFinalizer) {
+
 			// If the desired state is Secondary, skip the gRPC call to DisableVolumeReplication.
 			if isRamenFlow && instance.Spec.ReplicationState == replicationv1alpha1.Secondary {
+
 				logger.Info("Skipping DisableVolumeReplication gRPC call: VR object's desired state is Secondary",
 					"VRName", instance.Name,
 					"SpecState", instance.Spec.ReplicationState,
 					"StatusState", instance.Status.State)
+
 			} else {
 				err = r.disableVolumeReplication(logger, replicationSource, replicationHandle, parameters, secret)
 				if err != nil {
@@ -316,11 +307,11 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	instance.Status.LastStartTime = getCurrentTime()
 
-	forcePromote := instance.Labels[forcePromoteLabel] == forcePromoteLabelTrue
+	forcePromote := instance.Labels[forcePromoteLabel] == "true"
 	if forcePromote && instance.Spec.ReplicationState != replicationv1alpha1.Primary {
 		logger.Info("force-promote label set on non-Primary VR, clearing as it does not apply",
 			"VRName", instance.Name, "SpecState", instance.Spec.ReplicationState)
-		instance.Labels[forcePromoteLabel] = forcePromoteLabelFalse
+		instance.Labels[forcePromoteLabel] = "false"
 		forcePromote = false
 	}
 
@@ -348,9 +339,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	var replicationErr error
-
 	var promotedThisReconcile bool
-
 	var requeueForResync bool
 
 	switch instance.Spec.ReplicationState {
@@ -363,7 +352,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				logger.Info("force-promote label triggered, running Promote",
 					"VRName", instance.Name, "Generation", instance.Generation)
 			}
-
 			promotedThisReconcile = true
 			replicationErr = r.markVolumeAsPrimary(instance, logger, replicationSource, replicationHandle, parameters, secret, forcePromote)
 		}
@@ -426,7 +414,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			replication.HasKnownGRPCError(replicationErr, promoteRetryableErrors) {
 			logger.Info("secondary storage not ready for promotion, requeuing",
 				"VRName", instance.Name, "RequeueAfter", promoteRetryOnSecondaryNotReadyRequeue)
-
 			return ctrl.Result{Requeue: true, RequeueAfter: promoteRetryOnSecondaryNotReadyRequeue}, nil
 		}
 
@@ -445,21 +432,16 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 
 	if forcePromote && instance.Spec.ReplicationState == replicationv1alpha1.Primary {
-		err = r.Status().Update(ctx, instance)
-		if err != nil {
+		if err := r.Status().Update(ctx, instance); err != nil {
 			logger.Error(err, "failed to persist promoted condition before clearing force-promote label",
 				"VRName", instance.Name)
-
 			return ctrl.Result{}, err
 		}
 
-		instance.Labels[forcePromoteLabel] = forcePromoteLabelFalse
-
-		err = r.Update(ctx, instance)
-		if err != nil {
+		instance.Labels[forcePromoteLabel] = "false"
+		if err := r.Update(ctx, instance); err != nil {
 			logger.Error(err, "failed to clear force-promote label after successful promote",
 				"VRName", instance.Name)
-
 			return ctrl.Result{}, err
 		}
 	}
@@ -496,25 +478,21 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		if promotedThisReconcile {
 			logger.Info("promote just ran this reconcile, deferring GetVolumeReplicationInfo",
 				"VRName", instance.Name, "RequeueAfter", promoteDeferredReplicationInfoRequeue)
-
 			err = r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
-
 			return ctrl.Result{Requeue: true, RequeueAfter: promoteDeferredReplicationInfoRequeue}, nil
 		}
 
 		info, infoErr := r.getVolumeReplicationInfo(instance, logger, replicationSource, replicationHandle, secret)
-		if infoErr != nil && !stderrors.Is(infoErr, errNilInfo) {
+		if infoErr != nil {
 			uErr := r.updateReplicationStatus(ctx, instance, logger, getReplicationState(instance), msg, true)
 			if uErr != nil {
 				logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
 			}
-
 			return ctrl.Result{}, infoErr
 		}
-
 		if info != nil {
 			protoTimestamp := info.GetLastSyncTime()
 			if protoTimestamp != nil {
@@ -548,7 +526,7 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if isRamenFlow {
 		destInfo, destErr := r.getReplicationDestinationInfo(instance, logger, replicationSource, secret)
-		if destErr != nil && !stderrors.Is(destErr, errNilDest) {
+		if destErr != nil {
 			setDestinationInfoFailedCondition(&instance.Status.Conditions, instance.Generation,
 				instance.Spec.DataSource.Kind, destErr.Error())
 		} else if destInfo != nil {
@@ -559,7 +537,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 					instance.Status.DestinationVolumeID = destinationVolumeID
 					logger.Info("destination volume id resolved", "VRName", instance.Name, "DestinationVolumeID", destinationVolumeID)
 				}
-
 				setDestinationInfoAvailableCondition(&instance.Status.Conditions, instance.Generation,
 					instance.Spec.DataSource.Kind)
 			} else {
@@ -571,10 +548,8 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 				if uErr != nil {
 					logger.Error(uErr, "failed to update volumeReplication status", "VRName", instance.Name)
 				}
-
 				logger.Info("destination info not yet available, requeuing", "VRName",
 					instance.Name, "RequeueAfter", destinationInfoPendingRequeue)
-
 				return ctrl.Result{Requeue: true, RequeueAfter: destinationInfoPendingRequeue}, nil
 			}
 		}
@@ -589,7 +564,6 @@ func (r *VolumeReplicationReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	if requeueForInfo {
 		interval := getInfoReconcileInterval(parameters, logger)
-
 		return ctrl.Result{Requeue: true, RequeueAfter: interval}, nil
 	}
 
@@ -617,8 +591,7 @@ func (r *VolumeReplicationReconciler) SetupWithManager(mgr ctrl.Manager, cfg *co
 		UpdateFunc: func(e event.UpdateEvent) bool {
 			newVal := e.ObjectNew.GetLabels()[forcePromoteLabel]
 			oldVal := e.ObjectOld.GetLabels()[forcePromoteLabel]
-
-			return newVal == forcePromoteLabelTrue && oldVal != forcePromoteLabelTrue
+			return newVal == "true" && oldVal != "true"
 		},
 	}
 
@@ -661,7 +634,6 @@ func (r *VolumeReplicationReconciler) updateReplicationStatus(
 ) error {
 	instance.Status.State = state
 	instance.Status.Message = message
-
 	if markObserved {
 		instance.Status.ObservedGeneration = instance.Generation
 	}
@@ -748,16 +720,16 @@ func (r *VolumeReplicationReconciler) markVolumeAsPrimary(volumeReplicationObjec
 			setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
 
 			return resp.Error
-		}
+		} else {
+			logger.Info("retrying promote after known grpc error", "error", resp.Error)
 
-		logger.Info("retrying promote after known grpc error", "error", resp.Error)
+			resp := volumeReplication.Promote()
+			if resp.Error != nil {
+				logger.Error(resp.Error, "failed to force promote volume")
+				setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
 
-		resp = volumeReplication.Promote()
-		if resp.Error != nil {
-			logger.Error(resp.Error, "failed to force promote volume")
-			setFailedPromotionCondition(&volumeReplicationObject.Status.Conditions, volumeReplicationObject.Generation)
-
-			return resp.Error
+				return resp.Error
+			}
 		}
 	}
 
@@ -994,18 +966,13 @@ func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
 	}
 
 	vr := replication.Replication{Params: params}
-
 	resp := vr.GetInfo()
 	if resp.Error != nil {
 		logger.Error(resp.Error, "failed to get volume replication info", "VRName", instance.Name)
-
-		isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors)
-		if isKnownError {
+		if isKnownError := resp.HasKnownGRPCError(getReplicationInfoKnownErrors); isKnownError {
 			logger.Info("volume replication info not found", "VRName", instance.Name)
-
-			return nil, errNilInfo
+			return nil, nil
 		}
-
 		return nil, resp.Error
 	}
 
@@ -1013,10 +980,8 @@ func (r *VolumeReplicationReconciler) getVolumeReplicationInfo(
 	if !ok {
 		err := fmt.Errorf("received response of unexpected type")
 		logger.Error(err, "unable to parse GetVolumeReplicationInfo response", "VRName", instance.Name)
-
 		return nil, err
 	}
-
 	return infoResp, nil
 }
 
@@ -1034,31 +999,25 @@ func (r *VolumeReplicationReconciler) getReplicationDestinationInfo(
 	}
 
 	vr := replication.Replication{Params: params}
-
 	resp := vr.GetDestinationInfo()
 
 	if resp.Error != nil {
 		logger.Error(resp.Error, "failed to get replication destination info", "VRName", instance.Name)
-
-		isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors)
-		if isKnownError {
+		if isKnownError := resp.HasKnownGRPCError(getReplicationDestinationInfoKnownErrors); isKnownError {
 			logger.Info("replication destination info not found or not implemented, skipping",
 				"VRName", instance.Name)
-
-			return nil, errNilDest
+			return nil, nil
 		}
-
 		return nil, resp.Error
 	}
 
 	destResp, ok := resp.Response.(*replicationlib.GetReplicationDestinationInfoResponse)
+
 	if !ok {
 		err := fmt.Errorf("received response of unexpected type")
 		logger.Error(err, "unable to parse GetReplicationDestinationInfo response", "VRName", instance.Name)
-
 		return nil, err
 	}
-
 	return destResp, nil
 }
 
@@ -1067,14 +1026,11 @@ func getInfoReconcileInterval(parameters map[string]string, logger logr.Logger) 
 	if rawScheduleTime == "" {
 		return defaultScheduleTime
 	}
-
 	scheduleTime, err := time.ParseDuration(rawScheduleTime)
 	if err != nil {
 		logger.Error(err, "failed to parse schedulingInterval, using default", "value", rawScheduleTime)
-
 		return defaultScheduleTime
 	}
-
 	return scheduleTime
 }
 
@@ -1086,8 +1042,6 @@ func protoReplicationStatusToString(status replicationlib.GetVolumeReplicationIn
 		return "Degraded"
 	case replicationlib.GetVolumeReplicationInfoResponse_ERROR:
 		return "Error"
-	case replicationlib.GetVolumeReplicationInfoResponse_UNKNOWN:
-		return "Unknown"
 	default:
 		return "Unknown"
 	}
